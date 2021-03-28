@@ -16,7 +16,7 @@ ERIKA_STATE_PRINTING = b'2'
 ERIKA_CHANNEL_STATUS = b'{client_id}/{erika_id}/status'.format(client_id=MQQT_CLIENT_ID,
                                                                erika_id=MQQT_ERIKA_ID)  # erika/1/status
 
-ERIKA_CHANNEL_PRINT= b'{client_id}/{erika_id}/status'.format(client_id=MQQT_CLIENT_ID,
+ERIKA_CHANNEL_PRINT= b'{client_id}/{erika_id}/print'.format(client_id=MQQT_CLIENT_ID,
                                                                erika_id=MQQT_ERIKA_ID)  # erika/1/print                                                
 
 client = False
