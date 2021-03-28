@@ -9,7 +9,7 @@
 # WLAN_SSID = ""
 # WLAN_PASSWORD = "''"
 
-from .secrets import WLAN_SSID, WLAN_PASSWORD
+from secrets import WLAN_SSID, WLAN_PASSWORD
 
 # print("sys loading...")
 # import sys

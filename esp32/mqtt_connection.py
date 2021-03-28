@@ -3,7 +3,7 @@ from screen_utils import write_to_screen
 import time
 from machine import Timer
 from erika import Erika
-from .secrets import MQQT_PASSWORD, MQQT_SERVER, MQQT_USERNAME
+from secrets import MQQT_PASSWORD, MQQT_SERVER, MQQT_USERNAME
 
 MQQT_CLIENT_ID = "erika"
 # This will be used for the status of your Erika on the MQQT-Broker.
