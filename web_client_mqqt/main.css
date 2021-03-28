@@ -1,0 +1,51 @@
+.header{
+    background-image:  url("img/sky_tile_tall.gif");
+    background-repeat: repeat-x;
+    height: 310px;
+    width: 100%;
+}
+
+
+.logo_contrainer{
+    height:310px;
+    width: 627px;
+    margin: auto;
+    display: block;
+}
+
+.content{
+    width:50%;
+    max-width:500px;
+    margin:auto;
+}
+
+.content textarea{
+
+        /* border-color: black; */
+        border: #878787 1px;
+        /* border-block-style: none; */
+        width: 100%;
+        border-radius: 5px;
+        border-style: dashed;
+        min-height: 200px;
+        font-size: medium;
+        padding: 10px;
+        background-color: rgba(0,0,0,0.05);
+        /* border: none; */
+        resize: none;
+    }
+
+
+.content button{
+    display: inline-block;
+    cursor: pointer;
+    color: #202020;
+    font-family: Courier;
+    font-weight: 600;
+    width: 100%;
+    margin-top: 10px;
+    font-size: 17px;
+    padding: 7px 17px;
+    /* border-radius: 5px; */
+    
+}

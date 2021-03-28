@@ -1,21 +1,31 @@
 <html>
+
 <head>
-  <title>test Ws mqtt.js</title>
-</head>
-<body>
+  
+  <link rel="stylesheet" href="main.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
   <script src="mqqt_config.js" type="text/javascript"></script>
   <script src="erika_web_client.js" type="text/javascript"></script>
- 
-  
 
-<h1>Erika @ Home1</h1>
-<p>Status: <span id="status" ></span></p>
-<textarea id="erika_text">
-</textarea>
-<br/>
-<button type="submit" onclick="send_mqtt_msg(client, 'erika/1/print')">Drucken</button>
-<button type="submit" onclick="send_mqtt_msg(client, 'erika/1/show')">Anzeigen</button>
 
+  <title>Erika Cloud</title>
+</head>
+
+<body>
+
+
+  <div class="header">
+    <div class="logo_contrainer">
+    <img src="img/erika_cloud_logo.gif"/>
+  </div>
+</div>
+<div class="content">
+  <p>Status: <span id="status"></span></p>
+  <textarea id="erika_text" placeholder="Tell me lies..."></textarea>
+  <br />
+  <button type="submit" onclick="send_mqtt_msg(client, 'erika/1/print')">Drucken</button>
+  <!-- <button type="submit" onclick="send_mqtt_msg(client, 'erika/1/show')">Anzeigen</button> -->
+</div>
 </body>
+
 </html>
