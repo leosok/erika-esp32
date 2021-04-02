@@ -2,14 +2,23 @@
 
 from erika import char_map
 from time import sleep
-from machine import UART
+from machine import UART, Pin
+from erika import erica_encoder_decoder
 
 class Erika:
     DEFAULT_BAUD_RATE = 1200
     DEFAULT_LINE_LENGTH = 60
+    RTS_PIN = 22
+    CTS_PIN = 21
+    SETTINGS_STRING = ";;:"
+
 
     def __init__(self):
-      self.connection = self.start_uart()
+      self.uart = self.start_uart()
+      self.ddr_2_ascii = erica_encoder_decoder.DDR_ASCII()
+      # Without setting CTS to low, Erika will not send data
+      cts = Pin(Erika.CTS_PIN, Pin.OUT)
+      cts.off
 
     ##########################
 
@@ -19,10 +28,22 @@ class Erika:
       print("uart started")
       return uart
 
-    def read_string(self, size: int = 1):
-        return self._read_bytes(size=size).decode("DDRSCII")
+    def read_string(self):
+      tmp_str = ''
+      while self.uart.any() > 0:
+        tmp_bytes = self.uart.read(1)
+        decoded_char = self.ddr_2_ascii.decode(tmp_bytes)
+        tmp_str += decoded_char
+      # print(tmp_str)  
+      return tmp_str
 
-    def print_string(self, text: str):
+      # while self.uart.any():
+      #   byte_char = self.uart.read()
+      #   #char = self.ddr_2_ascii.decode(str(byte_char))
+      #   tmp_str += byte_char
+      # return tmp_str
+
+    def print_string(self, text: str, linefeed=True):
       
       output = ''
       lines = self.string_to_lines(text)
@@ -34,11 +55,12 @@ class Erika:
           except:
             output = char_map.A2E['_']
           finally:
-            self.connection.write(output)
+            self.uart.write(output)
             sleep(0.2)
-        # End of line
-        eol = char_map.A2E["\n"]
-        self.connection.write(eol)
+        if linefeed:
+          # End of line
+          eol = char_map.A2E["\n"]
+          self.uart.write(eol)
         sleep_carrige_time = (len(line)*0.04)
         print("carrige return. waiting {}".format(sleep_carrige_time))
         sleep(sleep_carrige_time) # check if this is good for carrige return

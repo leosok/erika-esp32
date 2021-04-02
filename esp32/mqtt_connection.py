@@ -38,6 +38,14 @@ def sub_cb(topic, msg, retained, duplicate):
 
 def check_channel(Timer):
 
+    # ECHO ERIKA
+    tmp_str = erika.read_string()
+    if len(tmp_str) > 0:
+        if tmp_str == Erika.SETTINGS_STRING:
+            erika.print_string("\nSettings! to Bed!", linefeed=False)    
+        print(tmp_str)
+        #erika.print_string(tmp_str)
+
     global client
 
     # At this point in the code you must consider how to handle

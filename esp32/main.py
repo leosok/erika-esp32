@@ -14,4 +14,4 @@ screen_network(oled, ip)
 #start_server(ip) #needs to be after screenstart because of UART
 oled = inizilize_screen()
 screen_network(oled)
-start_mqqt_connection(check_msg_interval = 500)
+start_mqqt_connection(check_msg_interval = 5000)
