@@ -25,25 +25,26 @@ erika = Erika()
 
 def sub_cb(topic, msg, retained, duplicate):
 
-    print(topic + ":" + msg)
     msg_str = str(msg, 'UTF-8')
+    print(topic + ":" + msg_str)
+    
     if "show" in topic:
         write_to_screen(msg_str)
     if "print" in topic:
         print("Got something to print...")
         set_status(ERIKA_STATE_PRINTING)
-        erika.print_string(msg_str + '\n')
+        erika.print_string(msg_str)
         set_status(ERIKA_STATE_LISTENING)
 
 
 def check_channel(Timer):
 
     # ECHO ERIKA
-    tmp_str = erika.read_string()
-    if len(tmp_str) > 0:
-        if tmp_str == Erika.SETTINGS_STRING:
-            erika.print_string("\nSettings! to Bed!", linefeed=False)    
-        print(tmp_str)
+    # tmp_str = erika.read_string()
+    # if len(tmp_str) > 0:
+    #     if tmp_str == Erika.SETTINGS_STRING:
+    #         erika.print_string("\nSettings! to Bed!", linefeed=False)    
+    #     print(tmp_str)
         #erika.print_string(tmp_str)
 
     global client

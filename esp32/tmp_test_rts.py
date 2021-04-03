@@ -3,9 +3,9 @@ import time
 
 e1 = Erika()
 # Setting a pulldown on RTS-Pin
-e1.rts.init(e1.rts.IN, e1.rts.PULL_DOWN)
+#e1.rts.init(e1.rts.IN, e1.rts.PULL_DOWN)
 
-for c in "Das ist ein Wahnsinn!\nWie handelt\nErika jetzt Zeilenum-\nbauten?":
+for c in "Kurz  Test.":
     sent = False
     while not sent:      
         if e1.rts.value() == 0:
