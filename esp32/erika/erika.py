@@ -8,6 +8,7 @@ from erika import erica_encoder_decoder
 class Erika:
     DEFAULT_BAUD_RATE = 1200
     DEFAULT_LINE_LENGTH = 60
+    DEFAULT_DELAY = 0.02
     RTS_PIN = 22
     CTS_PIN = 21
     SETTINGS_STRING = ";;:"
@@ -16,6 +17,8 @@ class Erika:
     def __init__(self):
       self.uart = self.start_uart()
       self.ddr_2_ascii = erica_encoder_decoder.DDR_ASCII()
+      # It is important to PULL_DOWN the RTS_PIN, to get a reading! (0=OK, 1=busy, please wait)
+      self.rts = (Erika.RTS_PIN.IN, self.rts.PULL_DOWN)
       # Without setting CTS to low, Erika will not send data
       cts = Pin(Erika.CTS_PIN, Pin.OUT)
       cts.off
@@ -37,35 +40,25 @@ class Erika:
       # print(tmp_str)  
       return tmp_str
 
-      # while self.uart.any():
-      #   byte_char = self.uart.read()
-      #   #char = self.ddr_2_ascii.decode(str(byte_char))
-      #   tmp_str += byte_char
-      # return tmp_str
 
     def print_string(self, text: str, linefeed=True):
       
       output = ''
       lines = self.string_to_lines(text)
-      print(lines)
+      #print(lines)
       for line in lines:
         for char in line:
-          try:
-            output = char_map.A2E[char]
-          except:
-            output = char_map.A2E['_']
-          finally:
-            self.uart.write(output)
-            sleep(0.2)
-        if linefeed:
-          # End of line
-          eol = char_map.A2E["\n"]
-          self.uart.write(eol)
-        sleep_carrige_time = (len(line)*0.04)
-        print("carrige return. waiting {}".format(sleep_carrige_time))
-        sleep(sleep_carrige_time) # check if this is good for carrige return
-      
-    
+          sent = False
+          while not sent:      
+              if self.rts.value() == 0:
+                  # Erika is ready
+                  char_encoded = self.ddr_2_ascii.encode(char)
+                  self.uart.write(char_encoded)
+                  sent = True
+              else:
+                  sent = False
+                  sleep(self.DEFAULT_DELAY)
+   
 
     # Returns an array of lines with a max_length of DEFAULT_LINE_LENGTH
     def string_to_lines(self, text, max_length=DEFAULT_LINE_LENGTH):
