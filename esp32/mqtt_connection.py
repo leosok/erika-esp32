@@ -20,7 +20,7 @@ ERIKA_CHANNEL_PRINT= b'{client_id}/{erika_id}/print'.format(client_id=MQQT_CLIEN
                                                                erika_id=MQQT_ERIKA_ID)  # erika/1/print                                                
 
 client = False
-erika = Erika()
+erika = None
 
 
 def sub_cb(topic, msg, retained, duplicate):
@@ -76,6 +76,10 @@ def set_status(status):
 def start_mqqt_connection(check_msg_interval=5000):
 
     global client
+    global erika
+
+    # moved here, so erika is not started by itself.
+    erika = Erika()
 
     print("Starting MQQT Connection")
 

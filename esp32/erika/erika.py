@@ -4,6 +4,7 @@ from erika import char_map
 import time
 from machine import UART, Pin
 from erika import erica_encoder_decoder
+import binascii
 
 class Erika:
     DEFAULT_BAUD_RATE = 1200
@@ -87,3 +88,13 @@ class Erika:
         #print("strtolines ({}): {}".format(len(lines[0]), lines))
         return lines
         
+
+    def alarm(self):
+        """Sound alarm for as long as possible"""
+        self._print_raw("AA")
+        self._print_raw("FF")
+
+    def _print_raw(self, data):
+        """prints base16 formated data"""
+        byte_data = binascii.unhexlify(data)
+        self.uart.write(byte_data)
