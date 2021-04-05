@@ -9,10 +9,14 @@ import ntptime
 from erika import Erika
 
 
+
 ip = do_connect() 
 # set time
-ntptime.NTP_DELTA = ntptime.NTP_DELTA - (2 * 3600) # Delta of -2 = UTC +2 = CEST
-ntptime.settime()
+try:
+    ntptime.NTP_DELTA = ntptime.NTP_DELTA - (2 * 3600) # Delta of -2 = UTC +2 = CEST
+    ntptime.settime()
+except:
+    print("Could not set time.")
 oled = inizilize_screen()
 screen_network(oled, ip)
 #start_server(ip) #needs to be after screenstart because of UART
@@ -21,3 +25,4 @@ screen_network(oled)
 #start_mqqt_connection(check_msg_interval = 5000)
 
 erika = Erika()
+erika.start_receiver()
