@@ -40,10 +40,10 @@ class DDR_ASCII:
     def decode(self, byte_data):
         try:
             return_char = self.ddr_2_ascii[byte_data]
-            print(return_char)
+            # print(return_char)
         except KeyError:
             print("Error decoding: {}".format(unpack('B', byte_data)[0]))
-            print(byte_data)
+            # print(byte_data)
             return_char="_"
         return return_char
 

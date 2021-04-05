@@ -40,6 +40,9 @@ class Erika:
         # Without setting CTS to low, Erika will not send data
         cts = Pin(Erika.CTS_PIN, Pin.OUT)
         cts.off
+
+        self.sender = self.Sender(self)
+        self.settings_controller = self.SettingsController(self)
         # asyncio
         # self.start_receiver()
 
@@ -58,6 +61,7 @@ class Erika:
             decoded_char = self.ddr_2_ascii.decode(tmp_bytes)        
             if decoded_char=='\n':
                 current_line = self.input_line_buffer
+                self.settings_controller.check_for_settings(current_line)
                 print(current_line)
                 self.input_lines_buffer.append(current_line)
                 self.input_line_buffer = ''
@@ -68,10 +72,8 @@ class Erika:
                 self.input_line_buffer += decoded_char
                 # If we hit the last Char of SETTINGSSTRING check if the rest was typed
                 last_chars = self.input_line_buffer[-len(self.SETTINGS_STRING):]
-                print(last_chars) 
                 if last_chars == self.SETTINGS_STRING:
-                    self.alarm()
-                    #self.print_string("!")
+                    self.sender.alarm()
                     write_to_screen("Settings")
             else:
                 self.input_line_buffer += decoded_char
@@ -142,32 +144,95 @@ class Erika:
         #print("strtolines ({}): {}".format(len(lines[0]), lines))
         return lines
 
-    def alarm(self, duration=30):
-        """Sound alarm for as long as possible"""
-        if duration > 255:
-            duration = 255
-        self._print_raw("AA")
-        self._print_raw(self._int_to_hex(duration))
 
-    def _print_raw(self, data):
-        """prints base16 formated data"""
-        byte_data = binascii.unhexlify(data)
-        print(byte_data)
-        self.uart.write(byte_data)
+    class SettingsController:
 
-    def _print_smiley(self):
-        """print a smiley"""
-        self._print_raw('13')
-        time.sleep(0.2)
-        self._print_raw('1F')
+        def __init__(self, erika=None):
+            self.erika = erika
+            self.setting_string = erika.SETTINGS_STRING
+        
+        actions = {
+            "hallo": "Print Hallo Welt",
+            "save": "Save Buffer to Pastebin",
+            "help": "Prints this info",
+            "typing": "Turn echo ON/OFF"
+        }
+        
+        def check_for_settings(self, input:str):
+            if self.setting_string in input:
+                c_string_start = input.rfind(self.setting_string) + len(self.setting_string)
+                control_string = input[-len(input) + c_string_start:] # the last characters after SETTINGS_STRING          
+                self.action(control_string)
+            else:
+                return False
 
-    def set_keyboard_echo(self, value):
-        if value:
-            self._print_raw("92")
-        else:
-            self._print_raw("91")
+        def action(self, action_str:str):
+            action_str = action_str.replace(' ','_')
+            print(action_str)
+            if '_on' in action_str.lower():
+                method_name = action_str[:-len('_on')]
+                method_to_call = getattr(self,method_name)
+                method_to_call(True)
+            elif '_off' in action_str.lower():
+                method_name = action_str[:-len('_off')]
+                method_to_call = getattr(self, method_name)
+                method_to_call(False)
+            else:
+                try:
+                    method_to_call = getattr(self, action_str)
+                    method_to_call()
+                except AttributeError:
+                    print("Could not execute '{}'".format(action_str))
 
-    def _int_to_hex(self,value):
-        hex_str = hex(value)[2:]
-        hex_str = "0"+hex_str
-        return hex_str[-2:]
+        def hallo(self):
+            '''Prints a "hello"'''
+            self.erika.print_string("Hallo zurück!")
+
+        def save(self):
+            '''Save to pastebin'''
+            pass
+
+        def help(self):
+            '''Prints all Controll-Functions'''
+            print('Printing help...')
+    
+        def typing(self, is_active):
+            '''Typing echo on/of"'''
+            print("Now typing is {}".format(is_active))
+            self.erika.sender.set_keyboard_echo(is_active)
+
+
+    class Sender:
+
+        def __init__(self, erika=None):
+            self.erika = erika
+
+        def alarm(self, duration=30):
+            """Sound alarm for as long as possible"""
+            if duration > 255:
+                duration = 255
+            self._print_raw("AA")
+            self._print_raw(self._int_to_hex(duration))
+
+        def _print_raw(self, data):
+            """prints base16 formated data"""
+            byte_data = binascii.unhexlify(data)
+            print(byte_data)
+            self.erika.uart.write(byte_data)
+
+        def _print_smiley(self):
+            """print a smiley"""
+            self._print_raw('13')
+            time.sleep(0.2)
+            self._print_raw('1F')
+
+        def set_keyboard_echo(self, is_active=True):
+            if is_active:
+                self._print_raw("92")
+            else:
+                self._print_raw("91")
+
+        def _int_to_hex(self,value):
+            hex_str = hex(value)[2:]
+            hex_str = "0"+hex_str
+            return hex_str[-2:]
