@@ -5,6 +5,18 @@ import time
 from machine import UART, Pin
 from erika import erica_encoder_decoder
 import binascii
+import uasyncio as asyncio
+from screen_utils import write_to_screen
+
+
+# async def sender():
+#     swriter = asyncio.StreamWriter(uart, {})
+#     while True:
+#         await swriter.awrite('Hello uart\n')
+#         await asyncio.sleep(2)
+#         print('wrote')
+
+
 
 class Erika:
     DEFAULT_BAUD_RATE = 1200
@@ -14,55 +26,97 @@ class Erika:
     CTS_PIN = 21
     SETTINGS_STRING = ";;:"
 
-
     def __init__(self):
-      self.uart = self.start_uart()
-      self.ddr_2_ascii = erica_encoder_decoder.DDR_ASCII()
-      # It is important to PULL_DOWN the RTS_PIN, to get a reading! (0=OK, 1=busy, please wait)
-      self.rts = Pin(Erika.RTS_PIN)
-      self.rts.init(self.rts.IN, self.rts.PULL_DOWN)
-      # Without setting CTS to low, Erika will not send data
-      cts = Pin(Erika.CTS_PIN, Pin.OUT)
-      cts.off
+        # line_buffer will be filled until "Return" is hit
+        self.input_line_buffer = ''
+        # lines_buffer will save the whole texte before doing sth with it.
+        self.input_lines_buffer = []
+
+        self.uart = self.start_uart()
+        self.ddr_2_ascii = erica_encoder_decoder.DDR_ASCII()
+        # It is important to PULL_DOWN the RTS_PIN, to get a reading! (0=OK, 1=busy, please wait)
+        self.rts = Pin(Erika.RTS_PIN)
+        self.rts.init(self.rts.IN, self.rts.PULL_DOWN)
+        # Without setting CTS to low, Erika will not send data
+        cts = Pin(Erika.CTS_PIN, Pin.OUT)
+        cts.off
+        # asyncio
+        # self.start_receiver()
+
+
+    def start_receiver(self):
+        loop = asyncio.get_event_loop()
+        #loop.create_task(sender())
+        loop.create_task(self.receiver())
+        print("Erika now listening async")
+        loop.run_forever()
+    
+    async def receiver(self):
+        sreader = asyncio.StreamReader(self.uart)
+        while True:
+            tmp_bytes = await sreader.read(1)
+            decoded_char = self.ddr_2_ascii.decode(tmp_bytes)        
+            if decoded_char=='\n':
+                current_line = self.input_line_buffer
+                print(current_line)
+                self.input_lines_buffer.append(current_line)
+                self.input_line_buffer = ''
+            elif decoded_char == 'DEL':
+                # remove last character, if DEL was hit
+                self.input_line_buffer = self.input_line_buffer[:-1]
+            elif decoded_char == self.SETTINGS_STRING[-1:]:
+                self.input_line_buffer += decoded_char
+                # If we hit the last Char of SETTINGSSTRING check if the rest was typed
+                last_chars = self.input_line_buffer[-len(self.SETTINGS_STRING):]
+                print(last_chars) 
+                if last_chars == self.SETTINGS_STRING:
+                    self.alarm()
+                    #self.print_string("!")
+                    write_to_screen("Settings")
+            else:
+                self.input_line_buffer += decoded_char
+            
 
     ##########################
 
     def start_uart(self, rx=5, tx=17, baud=1200):
-      uart=UART(2,baud)
-      uart.init(baud,bits=8,parity=None,stop=1,rx=rx,tx=tx)
-      print("uart started")
-      return uart
+        uart = UART(2, baud)
+        uart.init(baud, bits=8, parity=None, stop=1, rx=rx, tx=tx)
+        print("uart started")
+        return uart
+
+    def reader(self):
+        pass
 
     def read_string(self):
-      tmp_str = ''
-      while self.uart.any() > 0:
-        tmp_bytes = self.uart.read(1)
-        decoded_char = self.ddr_2_ascii.decode(tmp_bytes)
-        tmp_str += decoded_char
-      # print(tmp_str)  
-      return tmp_str
-
+        tmp_str = ''
+        while self.uart.any() > 0:
+            tmp_bytes = self.uart.read(1)
+            decoded_char = self.ddr_2_ascii.decode(tmp_bytes)
+            tmp_str += decoded_char
+        # print(tmp_str)
+        return tmp_str
 
     def print_string(self, text: str, linefeed=True):
-      
-      # output = ''
-      # lines = self.string_to_lines(text)
-      # print(lines)
-      # for line in lines:
-      for char in text:
-        sent = False
-        while not sent:      
-            if self.rts.value() == 0:
-                # Erika is ready
-                char_encoded = self.ddr_2_ascii.encode(char)
-                self.uart.write(char_encoded)
-                sent = True
-            else:
-                sent = False
-                time.sleep(Erika.DEFAULT_DELAY)
-   
+
+        # output = ''
+        # lines = self.string_to_lines(text)
+        # print(lines)
+        # for line in lines:
+        for char in text:
+            sent = False
+            while not sent:
+                if self.rts.value() == 0:
+                    # Erika is ready
+                    char_encoded = self.ddr_2_ascii.encode(char)
+                    self.uart.write(char_encoded)
+                    sent = True
+                else:
+                    sent = False
+                    time.sleep(Erika.DEFAULT_DELAY)
 
     # Returns an array of lines with a max_length of DEFAULT_LINE_LENGTH
+
     def string_to_lines(self, text, max_length=DEFAULT_LINE_LENGTH):
         #print("strtolines ({}): {}".format(max_length, text))
         words = text.split()
@@ -71,7 +125,7 @@ class Erika:
 
         # If the text is less than a line, return it
         if len(text) <= max_length:
-          return [text]
+            return [text]
 
         # else split to lines
         for word in words:
@@ -80,21 +134,40 @@ class Erika:
                 tmp_line = next
             else:
                 lines.append(tmp_line.strip())
-                tmp_line = word  
-        
+                tmp_line = word
+
         # for the last words
         lines.append(tmp_line.strip())
 
         #print("strtolines ({}): {}".format(len(lines[0]), lines))
         return lines
-        
 
-    def alarm(self):
+    def alarm(self, duration=30):
         """Sound alarm for as long as possible"""
+        if duration > 255:
+            duration = 255
         self._print_raw("AA")
-        self._print_raw("FF")
+        self._print_raw(self._int_to_hex(duration))
 
     def _print_raw(self, data):
         """prints base16 formated data"""
         byte_data = binascii.unhexlify(data)
+        print(byte_data)
         self.uart.write(byte_data)
+
+    def _print_smiley(self):
+        """print a smiley"""
+        self._print_raw('13')
+        time.sleep(0.2)
+        self._print_raw('1F')
+
+    def set_keyboard_echo(self, value):
+        if value:
+            self._print_raw("92")
+        else:
+            self._print_raw("91")
+
+    def _int_to_hex(self,value):
+        hex_str = hex(value)[2:]
+        hex_str = "0"+hex_str
+        return hex_str[-2:]

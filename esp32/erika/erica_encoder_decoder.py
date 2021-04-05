@@ -8,8 +8,6 @@ def transpose_dict(dictionary):
 
 
 class DDR_ASCII:
-    CONVERSION_TABLE_PATH = "./erika/charTranslation.json"
-
     def __init__(self, *args, **kwargs):
         """read conversion table from file and populate 2 dicts"""
         # with open(self.CONVERSION_TABLE_PATH, encoding="UTF-8") as f:
@@ -42,8 +40,10 @@ class DDR_ASCII:
     def decode(self, byte_data):
         try:
             return_char = self.ddr_2_ascii[byte_data]
+            print(return_char)
         except KeyError:
             print("Error decoding: {}".format(unpack('B', byte_data)[0]))
+            print(byte_data)
             return_char="_"
         return return_char
 
