@@ -7,12 +7,11 @@
 from secrets import PASTEBIN_API_KEY, PASTEBIN_USER_API_KEY
 import urequests
 import time
-from urlencode import urlencode
+from utils.urlencode import urlencode
 
 
 def post_formdata(url, data=None, json=None, headers=None):
     if isinstance(data, dict):
-
         data = urlencode(data)
         headers = {} if headers is None else headers
         headers['Content-Type'] = 'application/x-www-form-urlencoded'

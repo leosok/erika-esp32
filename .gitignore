@@ -132,3 +132,4 @@ dmypy.json
 web_client_mqqt/mqqt_config.js
 esp32/secrets.py
 .vscode/arduino.json
+esp32/saved_lines.txt

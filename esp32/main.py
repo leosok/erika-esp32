@@ -19,10 +19,10 @@ except:
     print("Could not set time.")
 oled = inizilize_screen()
 screen_network(oled, ip)
-#start_server(ip) #needs to be after screenstart because of UART
-oled = inizilize_screen()
-screen_network(oled)
 #start_mqqt_connection(check_msg_interval = 5000)
 
 erika = Erika()
+oled = inizilize_screen()
+screen_network(oled)
 erika.start_receiver()
+

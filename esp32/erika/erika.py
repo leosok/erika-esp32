@@ -7,6 +7,7 @@ from erika import erica_encoder_decoder
 import binascii
 import uasyncio as asyncio
 from screen_utils import write_to_screen
+from utils.pastebin import Pastebin 
 
 
 # async def sender():
@@ -61,9 +62,9 @@ class Erika:
             decoded_char = self.ddr_2_ascii.decode(tmp_bytes)        
             if decoded_char=='\n':
                 current_line = self.input_line_buffer
-                self.settings_controller.check_for_settings(current_line)
-                print(current_line)
                 self.input_lines_buffer.append(current_line)
+                if self.settings_controller.check_for_settings(current_line) == False:
+                    self._save_lines_to_file(current_line)
                 self.input_line_buffer = ''
             elif decoded_char == 'DEL':
                 # remove last character, if DEL was hit
@@ -144,6 +145,19 @@ class Erika:
         #print("strtolines ({}): {}".format(len(lines[0]), lines))
         return lines
 
+    def _save_lines_to_file(self, lines, filename='saved_lines.txt'):
+        f = open(filename, 'a')
+        # if it's just one line fake an array
+        if type(lines) is str:
+            lines = [lines]
+        # save to file
+        for line in lines:
+            f.write(line + '\n')
+        f.close()
+
+
+
+
 
     class SettingsController:
 
@@ -155,7 +169,8 @@ class Erika:
             "hallo": "Print Hallo Welt",
             "save": "Save Buffer to Pastebin",
             "help": "Prints this info",
-            "typing": "Turn echo ON/OFF"
+            "typing": "Turn echo ON/OFF",
+            "save": "Saving full buffer to PasteBin"
         }
         
         def check_for_settings(self, input:str):
@@ -169,20 +184,20 @@ class Erika:
         def action(self, action_str:str):
             action_str = action_str.replace(' ','_')
             print(action_str)
-            if '_on' in action_str.lower():
-                method_name = action_str[:-len('_on')]
-                method_to_call = getattr(self,method_name)
-                method_to_call(True)
-            elif '_off' in action_str.lower():
-                method_name = action_str[:-len('_off')]
-                method_to_call = getattr(self, method_name)
-                method_to_call(False)
-            else:
-                try:
+            try:
+                if '_on' in action_str.lower():
+                    method_name = action_str[:-len('_on')]
+                    method_to_call = getattr(self,method_name)
+                    method_to_call(True)
+                elif '_off' in action_str.lower():
+                    method_name = action_str[:-len('_off')]
+                    method_to_call = getattr(self, method_name)
+                    method_to_call(False)
+                else:
                     method_to_call = getattr(self, action_str)
                     method_to_call()
-                except AttributeError:
-                    print("Could not execute '{}'".format(action_str))
+            except AttributeError:
+                print("Could not execute '{}'".format(action_str))
 
         def hallo(self):
             '''Prints a "hello"'''
@@ -190,7 +205,12 @@ class Erika:
 
         def save(self):
             '''Save to pastebin'''
-            pass
+            # this last line has the ;;:save command
+            buffer = self.erika.input_lines_buffer
+            lines = buffer[:len(self.erika.input_lines_buffer)-1:]
+            p = Pastebin()
+            paste_resp = p.paste(text='\n'.join(lines))
+            write_to_screen(paste_resp)
 
         def help(self):
             '''Prints all Controll-Functions'''
@@ -200,6 +220,7 @@ class Erika:
             '''Typing echo on/of"'''
             print("Now typing is {}".format(is_active))
             self.erika.sender.set_keyboard_echo(is_active)
+            write_to_screen("Now typing is {}".format(is_active))
 
 
     class Sender:
@@ -211,8 +232,10 @@ class Erika:
             """Sound alarm for as long as possible"""
             if duration > 255:
                 duration = 255
+            self.set_keyboard_echo(False)
             self._print_raw("AA")
             self._print_raw(self._int_to_hex(duration))
+            self.set_keyboard_echo(True)
 
         def _print_raw(self, data):
             """prints base16 formated data"""

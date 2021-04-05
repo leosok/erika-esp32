@@ -40,13 +40,17 @@ def unquote_plus(s):
     s = s.replace('+', ' ')
     return unquote(s)
 
-def urlencode(query):
+def urlencode(query,quote_plus=False):
     if isinstance(query, dict):
         query = query.items()
     l = []
     for k, v in query:
-        k = quote_plus(str(k))
-        v = quote_plus(str(v))
+        if quote_plus:
+            k = quote_plus(str(k))
+            v = quote_plus(str(v))
+        else:
+            k=str(k)
+            v=str(v)
         l.append(k + '=' + v)
     return '&'.join(l)
 
