@@ -44,7 +44,7 @@ class DDR_ASCII:
         except KeyError:
             print("Error decoding: {}".format(unpack('B', byte_data)[0]))
             # print(byte_data)
-            return_char="_"
+            return_char=""
         return return_char
 
     def try_decode(self, data, input_as_default=True):

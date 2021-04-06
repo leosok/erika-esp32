@@ -8,6 +8,7 @@ A2E = {
     "\n": b"\x77",
     "\r": b"\x78",
     "DEL":  b"\xae",
+    "REL": b"\xaF",
 
     # punctuation
     " ": b"\x71",

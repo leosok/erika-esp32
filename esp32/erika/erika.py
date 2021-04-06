@@ -6,7 +6,7 @@ from machine import UART, Pin
 from erika import erica_encoder_decoder
 import binascii
 import uasyncio as asyncio
-from screen_utils import write_to_screen
+from utils.screen_utils import write_to_screen
 from utils.umailgun import send_mailgun
 
 
@@ -25,7 +25,9 @@ class Erika:
     DEFAULT_DELAY = 0.02
     RTS_PIN = 22
     CTS_PIN = 21
-    SETTINGS_STRING = ";;:"
+    # Using an Array for Setting_String, because Char does not work with REL
+    SETTINGS_CHARS = ["REL","REL","REL"]
+    SETTINGS_STRING = ''.join(SETTINGS_CHARS)
 
     def __init__(self):
         # line_buffer will be filled until "Return" is hit
@@ -44,6 +46,8 @@ class Erika:
 
         self.sender = self.Sender(self)
         self.settings_controller = self.SettingsController(self)
+
+        self.keyboard_echo = True
         # asyncio
         # self.start_receiver()
 
@@ -59,7 +63,9 @@ class Erika:
         sreader = asyncio.StreamReader(self.uart)
         while True:
             tmp_bytes = await sreader.read(1)
-            decoded_char = self.ddr_2_ascii.decode(tmp_bytes)        
+            decoded_char = self.ddr_2_ascii.decode(tmp_bytes) 
+            # print(self.SETTINGS_STRING[-1:][0])   
+            # print(decoded_char)        
             if decoded_char=='\n':
                 current_line = self.input_line_buffer
                 print(current_line)
@@ -70,13 +76,12 @@ class Erika:
             elif decoded_char == 'DEL':
                 # remove last character, if DEL was hit
                 self.input_line_buffer = self.input_line_buffer[:-1]
-            elif decoded_char == self.SETTINGS_STRING[-1:]:
+            elif decoded_char == self.SETTINGS_CHARS[-1:][0]:
                 self.input_line_buffer += decoded_char
-                # If we hit the last Char of SETTINGSSTRING check if the rest was typed
+                # If we hit the last Char of SETTINGS_STRING check if the rest was typed
                 last_chars = self.input_line_buffer[-len(self.SETTINGS_STRING):]
                 if last_chars == self.SETTINGS_STRING:
-                    self.sender.alarm()
-                    write_to_screen("Settings")
+                    self.settings_controller.start_action_promt()
             else:
                 self.input_line_buffer += decoded_char
             
@@ -164,7 +169,7 @@ class Erika:
 
         def __init__(self, erika=None):
             self.erika = erika
-            self.setting_string = erika.SETTINGS_STRING
+            self.setting_string =erika.SETTINGS_STRING
         
         actions = {
             "hallo": "Print Hallo Welt",
@@ -173,18 +178,25 @@ class Erika:
             "typing": "Turn echo ON/OFF",
             "send": "send as mail"
         }
+
+        def start_action_promt(self):
+            self.erika.sender.alarm()
+            self.erika.sender.set_keyboard_echo(False)  
+
         
         def check_for_settings(self, input:str):
             if self.setting_string in input:
                 c_string_start = input.rfind(self.setting_string) + len(self.setting_string)
-                control_string = input[-len(input) + c_string_start:] # the last characters after SETTINGS_STRING          
+                control_string = input[-len(input) + c_string_start:] # the last characters after SETTINGS_STRING
+                # Keyboard was off for "start_action_promt", set it back to original state
+                self.erika.sender.set_keyboard_echo(self.erika.keyboard_echo)        
                 self.action(control_string)
             else:
                 return False
 
         def action(self, action_str:str):
             action_str = action_str.replace(' ','_')
-            print(action_str)
+            print("Action: {}".format(action_str))
             try:
                 if '_on' in action_str.lower():
                     method_name = action_str[:-len('_on')]
@@ -239,10 +251,12 @@ class Erika:
             """Sound alarm for as long as possible"""
             if duration > 255:
                 duration = 255
+            # Beep will only come if keyboard_echo is off
             self.set_keyboard_echo(False)
             self._print_raw("AA")
             self._print_raw(self._int_to_hex(duration))
-            self.set_keyboard_echo(True)
+            # Set keyboard_echo to original state
+            self.set_keyboard_echo(self.erika.keyboard_echo)
 
         def _print_raw(self, data):
             """prints base16 formated data"""
@@ -259,8 +273,10 @@ class Erika:
         def set_keyboard_echo(self, is_active=True):
             if is_active:
                 self._print_raw("92")
+                time.sleep(0.2)
             else:
                 self._print_raw("91")
+                time.sleep(0.2)
 
         def _int_to_hex(self,value):
             hex_str = hex(value)[2:]

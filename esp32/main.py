@@ -3,13 +3,13 @@ print("main.py: Hello")
 
 import time
 from boot import do_connect
-from screen_utils import inizilize_screen, screen_network
+import utils.screen_utils as screen
 #from mqtt_connection import start_mqqt_connection
 import ntptime
 from erika import Erika
 
 
-
+screen.starting()
 ip = do_connect() 
 # set time
 try:
@@ -17,11 +17,9 @@ try:
     ntptime.settime()
 except:
     print("Could not set time.")
-oled = inizilize_screen()
-screen_network(oled, ip)
+screen.network(ip)
 #start_mqqt_connection(check_msg_interval = 5000)
 
 erika = Erika()
-oled = inizilize_screen()
-screen_network(oled)
+screen.network(ip)
 erika.start_receiver()
