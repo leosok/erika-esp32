@@ -25,9 +25,9 @@ class Erika:
     DEFAULT_DELAY = 0.02
     RTS_PIN = 22
     CTS_PIN = 21
-    # Using an Array for Setting_String, because Char does not work with REL
-    SETTINGS_CHARS = ["REL","REL","REL"]
-    SETTINGS_STRING = ''.join(SETTINGS_CHARS)
+    # Using an Array for ACTION_PROMT_STRING, because Char does not work with REL
+    ACTION_PROMT_CHARS = ["REL","REL","REL"]
+    ACTION_PROMT_STRING = ''.join(ACTION_PROMT_CHARS)
 
     def __init__(self):
         # line_buffer will be filled until "Return" is hit
@@ -40,12 +40,12 @@ class Erika:
         # It is important to PULL_DOWN the RTS_PIN, to get a reading! (0=OK, 1=busy, please wait)
         self.rts = Pin(Erika.RTS_PIN)
         self.rts.init(self.rts.IN, self.rts.PULL_DOWN)
-        # Without setting CTS to low, Erika will not send data
+        # Without CTS to low, Erika will not send data
         cts = Pin(Erika.CTS_PIN, Pin.OUT)
         cts.off
 
         self.sender = self.Sender(self)
-        self.settings_controller = self.SettingsController(self)
+        self.action_controller = self.ActionController(self)
 
         self.keyboard_echo = True
         # asyncio
@@ -64,24 +64,24 @@ class Erika:
         while True:
             tmp_bytes = await sreader.read(1)
             decoded_char = self.ddr_2_ascii.decode(tmp_bytes) 
-            # print(self.SETTINGS_STRING[-1:][0])   
+            # print(self.ACTION_PROMT_STRING[-1:][0])   
             # print(decoded_char)        
             if decoded_char=='\n':
                 current_line = self.input_line_buffer
                 print(current_line)
                 self.input_lines_buffer.append(current_line)
-                if self.settings_controller.check_for_settings(current_line) == False:
+                if self.action_controller.check_for_action(current_line) == False:
                     self._save_lines_to_file(current_line)
                 self.input_line_buffer = ''
             elif decoded_char == 'DEL':
                 # remove last character, if DEL was hit
                 self.input_line_buffer = self.input_line_buffer[:-1]
-            elif decoded_char == self.SETTINGS_CHARS[-1:][0]:
+            elif decoded_char == self.ACTION_PROMT_CHARS[-1:][0]:
                 self.input_line_buffer += decoded_char
-                # If we hit the last Char of SETTINGS_STRING check if the rest was typed
-                last_chars = self.input_line_buffer[-len(self.SETTINGS_STRING):]
-                if last_chars == self.SETTINGS_STRING:
-                    self.settings_controller.start_action_promt()
+                # If we hit the last Char of ACTION_PROMT_STRING check if the rest was typed
+                last_chars = self.input_line_buffer[-len(self.ACTION_PROMT_STRING):]
+                if last_chars == self.ACTION_PROMT_STRING:
+                    self.action_controller.start_action_promt()
             else:
                 self.input_line_buffer += decoded_char
             
@@ -163,13 +163,11 @@ class Erika:
 
 
 
-
-
-    class SettingsController:
+    class ActionController:
 
         def __init__(self, erika=None):
             self.erika = erika
-            self.setting_string =erika.SETTINGS_STRING
+            self.action_promt_string =erika.ACTION_PROMT_STRING
         
         actions = {
             "hallo": "Print Hallo Welt",
@@ -180,16 +178,18 @@ class Erika:
         }
 
         def start_action_promt(self):
+            write_to_screen("Enter Action")
             self.erika.sender.alarm()
             self.erika.sender.set_keyboard_echo(False)  
 
         
-        def check_for_settings(self, input:str):
-            if self.setting_string in input:
-                c_string_start = input.rfind(self.setting_string) + len(self.setting_string)
-                control_string = input[-len(input) + c_string_start:] # the last characters after SETTINGS_STRING
+        def check_for_action(self, input:str):
+            if self.action_promt_string in input:
+                c_string_start = input.rfind(self.action_promt_string) + len(self.action_promt_string)
+                control_string = input[-len(input) + c_string_start:] # the last characters after ACTION_PROMT_STRING
                 # Keyboard was off for "start_action_promt", set it back to original state
-                self.erika.sender.set_keyboard_echo(self.erika.keyboard_echo)        
+                self.erika.sender.set_keyboard_echo(self.erika.keyboard_echo) 
+                write_to_screen("Action: {}".format(control_string))       
                 self.action(control_string)
             else:
                 return False
@@ -237,7 +237,7 @@ class Erika:
     
         def typing(self, is_active):
             '''Typing echo on/of"'''
-            print("Now typing is {}".format(is_active))
+            print("Typing: {}".format(is_active))
             self.erika.sender.set_keyboard_echo(is_active)
             write_to_screen("Now typing is {}".format(is_active))
 
