@@ -7,7 +7,7 @@ from erika import erica_encoder_decoder
 import binascii
 import uasyncio as asyncio
 from screen_utils import write_to_screen
-from utils.pastebin import Pastebin 
+from utils.umailgun import send_mailgun
 
 
 # async def sender():
@@ -62,6 +62,7 @@ class Erika:
             decoded_char = self.ddr_2_ascii.decode(tmp_bytes)        
             if decoded_char=='\n':
                 current_line = self.input_line_buffer
+                print(current_line)
                 self.input_lines_buffer.append(current_line)
                 if self.settings_controller.check_for_settings(current_line) == False:
                     self._save_lines_to_file(current_line)
@@ -167,10 +168,10 @@ class Erika:
         
         actions = {
             "hallo": "Print Hallo Welt",
-            "save": "Save Buffer to Pastebin",
+            "save": "Save Buffer to Pastee",
             "help": "Prints this info",
             "typing": "Turn echo ON/OFF",
-            "save": "Saving full buffer to PasteBin"
+            "send": "send as mail"
         }
         
         def check_for_settings(self, input:str):
@@ -203,14 +204,20 @@ class Erika:
             '''Prints a "hello"'''
             self.erika.print_string("Hallo zurück!")
 
-        def save(self):
-            '''Save to pastebin'''
+        def send(self):
+            '''Send as Mail'''
             # this last line has the ;;:save command
             buffer = self.erika.input_lines_buffer
             lines = buffer[:len(self.erika.input_lines_buffer)-1:]
-            p = Pastebin()
-            paste_resp = p.paste(text='\n'.join(lines))
-            write_to_screen(paste_resp)
+            
+            mail_text = '\n'.join(lines)
+            date_str = "/".join([str(t) for t in time.localtime()[0:3]])
+            mail_subject = "Erika {}".format(date_str)         
+           
+            send_mailgun(mail_subject=mail_subject, mail_text=mail_text)
+            write_to_screen('Mailed {} lines'.format(len(lines)))
+            # empty the buffer, so next mail will only include relevant text
+            self.erika.input_lines_buffer = []
 
         def help(self):
             '''Prints all Controll-Functions'''

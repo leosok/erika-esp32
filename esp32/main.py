@@ -25,4 +25,3 @@ erika = Erika()
 oled = inizilize_screen()
 screen_network(oled)
 erika.start_receiver()
-
