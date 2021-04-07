@@ -24,7 +24,7 @@ class Erika:
     DEFAULT_BAUD_RATE = 1200
     DEFAULT_LINE_LENGTH = 60
     DEFAULT_DELAY = 0.02
-    RTS_PIN = 19
+    RTS_PIN = 22
     CTS_PIN = 21
     # Using an Array for ACTION_PROMT_STRING, because Char does not work with REL
     ACTION_PROMT_CHARS = ["REL","REL","REL"]
