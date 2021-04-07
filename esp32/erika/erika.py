@@ -6,6 +6,7 @@ from machine import UART, Pin
 from erika import erica_encoder_decoder
 import binascii
 import uasyncio as asyncio
+from primitives.queue import Queue
 from utils.screen_utils import write_to_screen
 from utils.umailgun import send_mailgun
 
@@ -46,19 +47,31 @@ class Erika:
 
         self.sender = self.Sender(self)
         self.action_controller = self.ActionController(self)
+        # Queue for the printer
+        self.queue = Queue()
 
         self.keyboard_echo = True
         # asyncio
         # self.start_receiver()
 
+    async def print_test(self, queue, counter):
+        while True:
+            counter += 1
+            await asyncio.sleep(5)
+            print('Should now print (print_test)')
+            await queue.put(" Hallo{}. ".format(counter))
 
-    def start_receiver(self):
+    def start_async_printer_and_receiver(self):
         loop = asyncio.get_event_loop()
-        #loop.create_task(sender())
         loop.create_task(self.receiver())
-        print("Erika now listening async")
+        print("Erika now listening to Keyboard async")
+        loop.create_task(self.printer(self.queue))
+        print("Erika now listening Print-Queue async")
+        loop.create_task(self.print_test(self.queue,0))
+        print('Erika Print_test startet')
         loop.run_forever()
-    
+
+
     async def receiver(self):
         sreader = asyncio.StreamReader(self.uart)
         while True:
@@ -84,6 +97,38 @@ class Erika:
                     self.action_controller.start_action_promt()
             else:
                 self.input_line_buffer += decoded_char
+
+    async def printer(self, queue, linefeed=True):
+        while True:
+            print("Running printer()")
+            text = await queue.get()  # Blocks until data is ready
+            print('QUEUE has something')
+
+            swriter = asyncio.StreamWriter(self.uart, {})
+            for char in text:
+                sent = False
+                while not sent:
+                    print("RTS {}".format(self.rts.value()))
+                    if self.rts.value() == 0:
+                        # Erika is ready
+                        #print(char, end=' : ')
+                        char_encoded = self.ddr_2_ascii.encode(char)
+                        # print(char_encoded)
+                        swriter.write(char_encoded)
+                        await swriter.drain()
+                        sent = True
+                    else:
+                        print("pausing")
+                        sent = False
+                        await asyncio.sleep_ms(100)
+                        #await asyncio.sleep(0.5)
+                #await asyncio.sleep(0.5)
+            # if linefeed:
+            #     newline = self.ddr_2_ascii.encode('\n')
+            #     swriter.write(newline)
+            #     await swriter.drain()
+   
+            print('printer done for now')
             
 
     ##########################
@@ -106,23 +151,7 @@ class Erika:
         # print(tmp_str)
         return tmp_str
 
-    def print_string(self, text: str, linefeed=True):
-
-        # output = ''
-        # lines = self.string_to_lines(text)
-        # print(lines)
-        # for line in lines:
-        for char in text:
-            sent = False
-            while not sent:
-                if self.rts.value() == 0:
-                    # Erika is ready
-                    char_encoded = self.ddr_2_ascii.encode(char)
-                    self.uart.write(char_encoded)
-                    sent = True
-                else:
-                    sent = False
-                    time.sleep(Erika.DEFAULT_DELAY)
+    
 
     # Returns an array of lines with a max_length of DEFAULT_LINE_LENGTH
 
@@ -269,6 +298,10 @@ class Erika:
             self._print_raw('13')
             time.sleep(0.2)
             self._print_raw('1F')
+
+        def _newline(self):
+            self._print_raw('77')
+
 
         def set_keyboard_echo(self, is_active=True):
             if is_active:

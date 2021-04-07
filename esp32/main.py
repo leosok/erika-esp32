@@ -22,4 +22,4 @@ screen.network(ip)
 
 erika = Erika()
 screen.network(ip)
-erika.start_receiver()
+erika.start_async_printer_and_receiver()
