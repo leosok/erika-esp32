@@ -54,22 +54,22 @@ class Erika:
         # asyncio
         # self.start_receiver()
 
-    async def print_test(self, queue, counter):
-        while True:
-            counter += 1
-            await asyncio.sleep(5)
-            print('Should now print (print_test)')
-            await queue.put(" Hallo{}. ".format(counter))
+    # async def print_test(self, queue, counter):
+    #     while True:
+    #         counter += 1
+    #         await asyncio.sleep(5)
+    #         print('Should now print (print_test)')
+    #         await queue.put(" Hallo{}. ".format(counter))
 
-    def start_async_printer_and_receiver(self):
-        loop = asyncio.get_event_loop()
+    def start_async_printer_and_receiver(self, loop):
+        #loop = asyncio.get_event_loop()
         loop.create_task(self.receiver())
         print("Erika now listening to Keyboard async")
         loop.create_task(self.printer(self.queue))
         print("Erika now listening Print-Queue async")
-        loop.create_task(self.print_test(self.queue,0))
-        print('Erika Print_test startet')
-        loop.run_forever()
+        # loop.create_task(self.print_test(self.queue,0))
+        # print('Erika Print_test startet')
+        # loop.run_forever() <-- moved to main
 
 
     async def receiver(self):

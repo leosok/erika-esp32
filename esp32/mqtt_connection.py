@@ -1,9 +1,10 @@
 from umqtt2.robust2 import MQTTClient
-from screen_utils import write_to_screen
+from utils.screen_utils import write_to_screen
 import time
 from machine import Timer
 from erika import Erika
 from secrets import MQQT_PASSWORD, MQQT_SERVER, MQQT_USERNAME
+import uasyncio as asyncio
 
 MQQT_CLIENT_ID = "erika"
 # This will be used for the status of your Erika on the MQQT-Broker.
@@ -24,6 +25,7 @@ erika = None
 
 
 def sub_cb(topic, msg, retained, duplicate):
+    global erika
 
     msg_str = str(msg, 'UTF-8')
     print(topic + ":" + msg_str)
@@ -33,35 +35,28 @@ def sub_cb(topic, msg, retained, duplicate):
     if "print" in topic:
         print("Got something to print...")
         set_status(ERIKA_STATE_PRINTING)
-        erika.print_string(msg_str)
+        await erika.queue.put(msg_str)
         set_status(ERIKA_STATE_LISTENING)
 
 
-def check_channel(Timer):
+async def check_channel():
+    while True:
+        global client
 
-    # ECHO ERIKA
-    # tmp_str = erika.read_string()
-    # if len(tmp_str) > 0:
-    #     if tmp_str == Erika.SETTINGS_STRING:
-    #         erika.print_string("\nSettings! to Bed!", linefeed=False)    
-    #     print(tmp_str)
-        #erika.print_string(tmp_str)
+        # At this point in the code you must consider how to handle
+        # connection errors.  And how often to resume the connection.
+        if client.is_conn_issue():
+            while client.is_conn_issue():
+                # If the connection is successful, the is_conn_issue
+                # method will not return a connection error.
+                client.reconnect()
+            else:
+                # set status of Erika to "listening"
+                set_status(ERIKA_STATE_LISTENING)
+                client.resubscribe()
 
-    global client
-
-    # At this point in the code you must consider how to handle
-    # connection errors.  And how often to resume the connection.
-    if client.is_conn_issue():
-        while client.is_conn_issue():
-            # If the connection is successful, the is_conn_issue
-            # method will not return a connection error.
-            client.reconnect()
-        else:
-            # set status of Erika to "listening"
-            set_status(ERIKA_STATE_LISTENING)
-            client.resubscribe()
-
-    client.check_msg()
+        client.check_msg()
+        asyncio.sleep(1)
 
 # Will start a connection to the mqtt-broker using
 # check_msg_interval: integer, milliseconds
@@ -73,14 +68,13 @@ def set_status(status):
     return True
 
 
-def start_mqqt_connection(check_msg_interval=5000):
+def start_mqqt_connection(the_erika):
 
     global client
     global erika
+    erika = the_erika
 
     # moved here, so erika is not started by itself.
-    erika = Erika()
-
     print("Starting MQQT Connection")
 
     client = MQTTClient(client_id=MQQT_CLIENT_ID,
@@ -100,8 +94,3 @@ def start_mqqt_connection(check_msg_interval=5000):
     # set status of Erika to "listening"
     set_status(ERIKA_STATE_LISTENING)
     client.subscribe(topic=ERIKA_CHANNEL_PRINT)
-
-    # This Timer will check for MQQT-Messages
-    timer = Timer(0)
-    timer.init(period=check_msg_interval,
-               mode=Timer.PERIODIC, callback=check_channel)
