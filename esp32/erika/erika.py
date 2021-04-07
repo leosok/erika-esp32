@@ -24,7 +24,7 @@ class Erika:
     DEFAULT_BAUD_RATE = 1200
     DEFAULT_LINE_LENGTH = 60
     DEFAULT_DELAY = 0.02
-    RTS_PIN = 22
+    RTS_PIN = 19
     CTS_PIN = 21
     # Using an Array for ACTION_PROMT_STRING, because Char does not work with REL
     ACTION_PROMT_CHARS = ["REL","REL","REL"]
@@ -116,11 +116,12 @@ class Erika:
                         # print(char_encoded)
                         swriter.write(char_encoded)
                         await swriter.drain()
+                        await asyncio.sleep_ms(20)
                         sent = True
                     else:
                         print("pausing")
                         sent = False
-                        await asyncio.sleep_ms(100)
+                        await asyncio.sleep_ms(20)
                         #await asyncio.sleep(0.5)
                 #await asyncio.sleep(0.5)
             # if linefeed:
@@ -130,6 +131,25 @@ class Erika:
    
             print('printer done for now')
             
+    
+    def print_old(self, text: str, linefeed=True):
+      
+      # output = ''
+      # lines = self.string_to_lines(text)
+      # print(lines)
+      # for line in lines:
+      
+        sent = False
+        while not sent:
+            for char in text:   
+                print(self.rts.value())
+                if self.rts.value() == 0:
+                    # Erika is ready
+                    char_encoded = self.ddr_2_ascii.encode(char)
+                    self.uart.write(char_encoded)
+                else:
+                    time.sleep(0.5)
+            sent=True
 
     ##########################
 
