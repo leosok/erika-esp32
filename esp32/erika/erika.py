@@ -49,6 +49,8 @@ class Erika:
         self.action_controller = self.ActionController(self)
         # Queue for the printer
         self.queue = Queue()
+        # will be used for MQQT-Status
+        self.is_printing=False
 
         self.keyboard_echo = True
         # asyncio
@@ -100,35 +102,36 @@ class Erika:
 
     async def printer(self, queue, linefeed=True):
         while True:
-            print("Running printer()")
             text = await queue.get()  # Blocks until data is ready
-            print('QUEUE has something')
-
+            print('Printer found text in Queue')
+            self.is_printing = True
             swriter = asyncio.StreamWriter(self.uart, {})
             for char in text:
                 sent = False
                 while not sent:
-                    print("RTS {}".format(self.rts.value()))
+                    # print("RTS {}".format(self.rts.value()))
                     if self.rts.value() == 0:
                         # Erika is ready
                         #print(char, end=' : ')
                         char_encoded = self.ddr_2_ascii.encode(char)
-                        # print(char_encoded)
+                        if len(char) == 0:
+                            # char could not be decoded
+                            break
                         swriter.write(char_encoded)
                         await swriter.drain()
-                        await asyncio.sleep_ms(20)
+                        await asyncio.sleep_ms(30)
                         sent = True
                     else:
-                        print("pausing")
+                        # print("pausing")
                         sent = False
-                        await asyncio.sleep_ms(20)
+                        await asyncio.sleep_ms(40)
                         #await asyncio.sleep(0.5)
                 #await asyncio.sleep(0.5)
             # if linefeed:
             #     newline = self.ddr_2_ascii.encode('\n')
             #     swriter.write(newline)
             #     await swriter.drain()
-   
+            self.is_printing = False
             print('printer done for now')
             
     
@@ -256,16 +259,20 @@ class Erika:
                     method_to_call = getattr(self, method_name)
                     method_to_call(False)
                 else:
+                    # TODO: everything to Async!
                     method_to_call = getattr(self, action_str)
-                    method_to_call()
+                    #method_to_call()
+                    loop = asyncio.get_event_loop()
+                    loop.create_task(method_to_call())
             except AttributeError:
                 print("Could not execute '{}'".format(action_str))
 
-        def hallo(self):
+        async def hallo(self):
             '''Prints a "hello"'''
-            self.erika.print_string("Hallo zurück!")
+            time.sleep(1)
+            await self.erika.queue.put('Hallo, Du!')
 
-        def send(self):
+        async def send(self):
             '''Send as Mail'''
             # this last line has the ;;:save command
             buffer = self.erika.input_lines_buffer
@@ -275,7 +282,7 @@ class Erika:
             date_str = "/".join([str(t) for t in time.localtime()[0:3]])
             mail_subject = "Erika {}".format(date_str)         
            
-            send_mailgun(mail_subject=mail_subject, mail_text=mail_text)
+            await send_mailgun(mail_subject=mail_subject, mail_text=mail_text)
             write_to_screen('Mailed {} lines'.format(len(lines)))
             # empty the buffer, so next mail will only include relevant text
             self.erika.input_lines_buffer = []
@@ -284,11 +291,11 @@ class Erika:
             '''Prints all Controll-Functions'''
             print('Printing help...')
     
-        def typing(self, is_active):
+        async def typing(self, is_active):
             '''Typing echo on/of"'''
             print("Typing: {}".format(is_active))
-            self.erika.sender.set_keyboard_echo(is_active)
-            write_to_screen("Now typing is {}".format(is_active))
+            await self.erika.sender.set_keyboard_echo(is_active)
+            await write_to_screen("Now typing is {}".format(is_active))
 
 
     class Sender:

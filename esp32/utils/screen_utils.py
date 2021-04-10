@@ -3,9 +3,13 @@
 from boot import do_connect
 from machine import SoftI2C, Pin
 import ssd1306
+import time
 print("Show Wlan on Screen now")
 
+oled = False
+
 def inizilize():
+  global oled
   rst = Pin(16, Pin.OUT)
   rst.value(1)
   scl = Pin(15, Pin.OUT, Pin.PULL_UP)
@@ -15,22 +19,23 @@ def inizilize():
   return oled
 
 def reset():
-  oled = inizilize()
   oled.fill(0)
-  oled.show()
   return oled
 
-def network(ip=False):
-  oled = inizilize()
+def network(ip=False, strength=False):
   reset()
   oled.text('Erika', 45, 5)
   if ip:
     oled.text(ip,0,20)
   else:
     oled.text(do_connect(),0,20)
+  if strength:
+    oled.text(str(strength), 0, 30)
+  oled.text(str(time.ticks_ms()/1000), 0, 40)
   oled.show()
 
 def starting():
+  oled = inizilize()
   oled = reset()
   oled.text('Erika loading...', 10, 5)
   oled.show()
@@ -38,7 +43,6 @@ def starting():
 
 def write_to_screen(text):
   print("Screen: " + text)
-  oled = inizilize()
   # reset
   oled.fill_rect(0, 50, oled.width, oled.height-50, 0)
   oled.text(text, 20, 50)

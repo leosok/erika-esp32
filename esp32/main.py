@@ -2,15 +2,17 @@
 print("main.py: Hello")
 
 import time
-from boot import do_connect
+from boot import do_connect, scan_wlan
 import utils.screen_utils as screen
-from mqtt_connection import start_mqqt_connection, check_channel
+from mqtt_connection import start_mqqt_connection
 import ntptime
 from erika import Erika
 import uasyncio as asyncio
+import network
 
 
 screen.starting()
+scan_wlan()
 ip = do_connect() 
 # set time
 try:
@@ -21,16 +23,22 @@ except:
 screen.network(ip)
 
 erika = Erika()
-screen.network(ip)
 
 
-# Start all that Jazz
-loop = asyncio.get_event_loop()
-loop.create_task(erika.receiver())
-print("Erika now listening to Keyboard async")
-loop.create_task(erika.printer(erika.queue))
-print("Erika now listening Print-Queue async")
-# start_mqqt_connection(erika)
-# print("MQQT now listening to server")
-# loop.create_task(check_channel())
-loop.run_forever()
+async def wlan_strength(max=5):
+    while True:
+        wlan = network.WLAN()
+        strength = wlan.status('rssi')
+        screen.network(do_connect(),strength)
+        await asyncio.sleep(max)
+
+async def main():
+    # Schedule three calls *concurrently*:
+    await asyncio.gather(
+       erika.receiver(),
+       erika.printer(erika.queue),
+       start_mqqt_connection(erika),
+       wlan_strength(1)
+    )
+
+asyncio.run(main())

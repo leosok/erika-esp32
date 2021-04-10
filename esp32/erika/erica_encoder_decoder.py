@@ -22,7 +22,11 @@ class DDR_ASCII:
 
 
     def encode(self, data):
-        return self.ascii_2_ddr[data]
+        try:
+            char = self.ascii_2_ddr[data]
+        except KeyError:
+            char = ''
+        return char
 
     def try_encode(self, data, input_as_default=True):
         default = data if input_as_default else None
