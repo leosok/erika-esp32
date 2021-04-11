@@ -1,5 +1,3 @@
-
-
 from erika import char_map
 import time
 from machine import UART, Pin
@@ -9,6 +7,7 @@ import uasyncio as asyncio
 from primitives.queue import Queue
 from utils.screen_utils import write_to_screen
 from utils.umailgun import send_mailgun
+from boot import do_connect
 
 
 class Erika:
@@ -253,7 +252,7 @@ class Erika:
             mail_text = '\n'.join(lines)
             date_str = "/".join([str(t) for t in time.localtime()[0:3]])
             mail_subject = "Erika {}".format(date_str)         
-           
+            await do_connect()
             await send_mailgun(mail_subject=mail_subject, mail_text=mail_text)
             write_to_screen('Mailed {} lines'.format(len(lines)))
             # empty the buffer, so next mail will only include relevant text
