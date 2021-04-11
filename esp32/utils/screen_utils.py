@@ -18,8 +18,9 @@ def inizilize():
   oled = ssd1306.SSD1306_I2C(128, 64, i2c, addr=0x3c)
   return oled
 
-def reset():
-  oled.fill(0)
+def reset(lines=4):
+  oled.fill_rect(0, 0, oled.width, 10 + lines*10, 0)
+  # oled.show()
   return oled
 
 def network(ip=False, strength=False):
@@ -31,20 +32,20 @@ def network(ip=False, strength=False):
     oled.text(do_connect(),0,20)
   if strength:
     oled.text(str(strength), 0, 30)
-  oled.text(str(time.ticks_ms()/1000), 0, 40)
+  oled.text(str(round(time.ticks_ms()/1000)), 0, 40)
   oled.show()
 
 def starting():
   oled = inizilize()
-  oled = reset()
+  oled = reset(5)
   oled.text('Erika loading...', 10, 5)
   oled.show()
   #oled.text('MicroPython', 20, 20)
 
 def write_to_screen(text):
   print("Screen: " + text)
-  # reset
-  oled.fill_rect(0, 50, oled.width, oled.height-50, 0)
+  reset(5)
+  #oled.fill_rect(0, 50, oled.width, oled.height-50, 0)
   oled.text(text, 20, 50)
   oled.show()
  

@@ -11,25 +11,25 @@ import uasyncio as asyncio
 import network
 
 
-screen.starting()
-scan_wlan()
-ip = do_connect() 
+
+# scan_wlan()
 # set time
 try:
     ntptime.NTP_DELTA = ntptime.NTP_DELTA - (2 * 3600) # Delta of -2 = UTC +2 = CEST
     ntptime.settime()
 except:
     print("Could not set time.")
-screen.network(ip)
 
 erika = Erika()
-
+time.sleep(1)
+screen.starting()
 
 async def wlan_strength(max=5):
     while True:
+        ip = do_connect()
         wlan = network.WLAN()
         strength = wlan.status('rssi')
-        screen.network(do_connect(),strength)
+        screen.network(ip,strength)
         await asyncio.sleep(max)
 
 async def main():
@@ -37,8 +37,8 @@ async def main():
     await asyncio.gather(
        erika.receiver(),
        erika.printer(erika.queue),
-       start_mqqt_connection(erika),
-       wlan_strength(1)
+       wlan_strength(1),
+       start_mqqt_connection(erika)
     )
 
 asyncio.run(main())

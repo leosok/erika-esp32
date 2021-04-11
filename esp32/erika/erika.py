@@ -11,15 +11,6 @@ from utils.screen_utils import write_to_screen
 from utils.umailgun import send_mailgun
 
 
-# async def sender():
-#     swriter = asyncio.StreamWriter(uart, {})
-#     while True:
-#         await swriter.awrite('Hello uart\n')
-#         await asyncio.sleep(2)
-#         print('wrote')
-
-
-
 class Erika:
     DEFAULT_BAUD_RATE = 1200
     DEFAULT_LINE_LENGTH = 60
@@ -106,25 +97,27 @@ class Erika:
             print('Printer found text in Queue')
             self.is_printing = True
             swriter = asyncio.StreamWriter(self.uart, {})
-            for char in text:
-                sent = False
-                while not sent:
-                    # print("RTS {}".format(self.rts.value()))
-                    if self.rts.value() == 0:
-                        # Erika is ready
-                        #print(char, end=' : ')
-                        char_encoded = self.ddr_2_ascii.encode(char)
-                        if len(char) == 0:
-                            # char could not be decoded
-                            break
-                        swriter.write(char_encoded)
-                        await swriter.drain()
-                        await asyncio.sleep_ms(30)
-                        sent = True
-                    else:
-                        # print("pausing")
-                        sent = False
-                        await asyncio.sleep_ms(40)
+            lines = self.string_to_lines(text)            
+            for line in lines:
+                for char in line:
+                    sent = False
+                    while not sent:
+                        # print("RTS {}".format(self.rts.value()))
+                        if self.rts.value() == 0:
+                            # Erika is ready
+                            #print(char, end=' : ')
+                            char_encoded = self.ddr_2_ascii.encode(char)
+                            if len(char) == 0:
+                                # char could not be decoded
+                                break
+                            swriter.write(char_encoded)
+                            await swriter.drain()
+                            await asyncio.sleep_ms(30)
+                            sent = True
+                        else:
+                            # print("pausing")
+                            sent = False
+                            await asyncio.sleep_ms(40)
                         #await asyncio.sleep(0.5)
                 #await asyncio.sleep(0.5)
             # if linefeed:
@@ -134,27 +127,6 @@ class Erika:
             self.is_printing = False
             print('printer done for now')
             
-    
-    def print_old(self, text: str, linefeed=True):
-      
-      # output = ''
-      # lines = self.string_to_lines(text)
-      # print(lines)
-      # for line in lines:
-      
-        sent = False
-        while not sent:
-            for char in text:   
-                print(self.rts.value())
-                if self.rts.value() == 0:
-                    # Erika is ready
-                    char_encoded = self.ddr_2_ascii.encode(char)
-                    self.uart.write(char_encoded)
-                else:
-                    time.sleep(0.5)
-            sent=True
-
-    ##########################
 
     def start_uart(self, rx=5, tx=17, baud=1200):
         uart = UART(2, baud)
@@ -249,20 +221,20 @@ class Erika:
         def action(self, action_str:str):
             action_str = action_str.replace(' ','_')
             print("Action: {}".format(action_str))
+            loop = asyncio.get_event_loop()
             try:
                 if '_on' in action_str.lower():
                     method_name = action_str[:-len('_on')]
                     method_to_call = getattr(self,method_name)
-                    method_to_call(True)
+                    loop.create_task(method_to_call(True))
                 elif '_off' in action_str.lower():
                     method_name = action_str[:-len('_off')]
                     method_to_call = getattr(self, method_name)
-                    method_to_call(False)
+                    loop.create_task(method_to_call(False))
                 else:
                     # TODO: everything to Async!
                     method_to_call = getattr(self, action_str)
-                    #method_to_call()
-                    loop = asyncio.get_event_loop()
+                    #method_to_call()                   
                     loop.create_task(method_to_call())
             except AttributeError:
                 print("Could not execute '{}'".format(action_str))
@@ -294,8 +266,8 @@ class Erika:
         async def typing(self, is_active):
             '''Typing echo on/of"'''
             print("Typing: {}".format(is_active))
-            await self.erika.sender.set_keyboard_echo(is_active)
-            await write_to_screen("Now typing is {}".format(is_active))
+            self.erika.sender.set_keyboard_echo(is_active)
+            write_to_screen("Now typing is {}".format(is_active))
 
 
     class Sender:
