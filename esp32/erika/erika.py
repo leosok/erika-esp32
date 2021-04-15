@@ -53,15 +53,15 @@ class Erika:
     #         print('Should now print (print_test)')
     #         await queue.put(" Hallo{}. ".format(counter))
 
-    def start_async_printer_and_receiver(self, loop):
-        #loop = asyncio.get_event_loop()
-        loop.create_task(self.receiver())
-        print("Erika now listening to Keyboard async")
-        loop.create_task(self.printer(self.queue))
-        print("Erika now listening Print-Queue async")
-        # loop.create_task(self.print_test(self.queue,0))
-        # print('Erika Print_test startet')
-        # loop.run_forever() <-- moved to main
+    # def start_async_printer_and_receiver(self, loop):
+    #     #loop = asyncio.get_event_loop()
+    #     loop.create_task(self.receiver())
+    #     print("Erika now listening to Keyboard async")
+    #     loop.create_task(self.printer(self.queue))
+    #     print("Erika now listening Print-Queue async")
+    #     # loop.create_task(self.print_test(self.queue,0))
+    #     # print('Erika Print_test startet')
+    #     # loop.run_forever() <-- moved to main
 
 
     async def receiver(self):
@@ -96,8 +96,10 @@ class Erika:
             print('Printer found text in Queue')
             self.is_printing = True
             swriter = asyncio.StreamWriter(self.uart, {})
-            lines = self.string_to_lines(text)            
+            lines = self.string_to_lines(text)         
             for line in lines:
+                line += '\n'
+                print(line)
                 for char in line:
                     sent = False
                     while not sent:
@@ -117,6 +119,8 @@ class Erika:
                             # print("pausing")
                             sent = False
                             await asyncio.sleep_ms(40)
+
+                            
                         #await asyncio.sleep(0.5)
                 #await asyncio.sleep(0.5)
             # if linefeed:
@@ -252,8 +256,8 @@ class Erika:
             mail_text = '\n'.join(lines)
             date_str = "/".join([str(t) for t in time.localtime()[0:3]])
             mail_subject = "Erika {}".format(date_str)         
-            await do_connect()
-            await send_mailgun(mail_subject=mail_subject, mail_text=mail_text)
+            do_connect()
+            send_mailgun(mail_subject=mail_subject, mail_text=mail_text)
             write_to_screen('Mailed {} lines'.format(len(lines)))
             # empty the buffer, so next mail will only include relevant text
             self.erika.input_lines_buffer = []

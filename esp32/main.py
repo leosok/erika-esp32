@@ -8,8 +8,8 @@ from mqtt_connection import start_mqqt_connection
 import ntptime
 from erika import Erika
 import uasyncio as asyncio
+import gc
 import network
-
 
 
 # scan_wlan()
@@ -26,6 +26,9 @@ screen.starting()
 
 async def wlan_strength(max=5):
     while True:
+        # we use this for Garbage Collection too.
+        gc.collect()
+        ##
         ip = do_connect()
         wlan = network.WLAN()
         strength = wlan.status('rssi')
@@ -37,7 +40,7 @@ async def main():
     await asyncio.gather(
        erika.receiver(),
        erika.printer(erika.queue),
-       wlan_strength(1),
+       wlan_strength(5),
        start_mqqt_connection(erika)
     )
 

@@ -6,6 +6,7 @@ from secrets import MAILGUN_API_KEY, CONFIG_MY_EMAIL
 import binascii
 import os
 from boot import do_connect
+from utils import timed_function
 
 
 def encode_multipart_formdata(fields):
@@ -29,6 +30,7 @@ def encode_multipart_formdata(fields):
     return body, content_type
 
 
+@timed_function
 def send_mailgun(mail_text, mail_from="erika@news.belavo.co", mail_to=CONFIG_MY_EMAIL, mail_subject="Erika Transcript"):
 
     headers = {}
@@ -36,7 +38,6 @@ def send_mailgun(mail_text, mail_from="erika@news.belavo.co", mail_to=CONFIG_MY_
     # transcoding adds a \n character, we need to remove
     auth_base = binascii.b2a_base64(auth_str).strip()
     headers["Authorization"] = b"Basic " + auth_base
-    #headers["Authorization"] = "Basic YXBpOmJkYmRjYjg0M2EzZGZiYzI1YzQ4Y2Q4OTIwZjY1YTUxLTM5MzliOTNhLWQ5NWU2NWUz"
 
     ajson = {
         "from": mail_from,
@@ -56,3 +57,4 @@ def send_mailgun(mail_text, mail_from="erika@news.belavo.co", mail_to=CONFIG_MY_
                       data=data)
 
     print(r.text)
+    return r.text
