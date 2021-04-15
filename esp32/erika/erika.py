@@ -1,3 +1,5 @@
+
+
 from erika import char_map
 import time
 from machine import UART, Pin
@@ -7,7 +9,6 @@ import uasyncio as asyncio
 from primitives.queue import Queue
 from utils.screen_utils import write_to_screen
 from utils.umailgun import send_mailgun
-from boot import do_connect
 
 
 class Erika:
@@ -53,17 +54,7 @@ class Erika:
     #         print('Should now print (print_test)')
     #         await queue.put(" Hallo{}. ".format(counter))
 
-    # def start_async_printer_and_receiver(self, loop):
-    #     #loop = asyncio.get_event_loop()
-    #     loop.create_task(self.receiver())
-    #     print("Erika now listening to Keyboard async")
-    #     loop.create_task(self.printer(self.queue))
-    #     print("Erika now listening Print-Queue async")
-    #     # loop.create_task(self.print_test(self.queue,0))
-    #     # print('Erika Print_test startet')
-    #     # loop.run_forever() <-- moved to main
-
-
+    
     async def receiver(self):
         sreader = asyncio.StreamReader(self.uart)
         while True:
@@ -96,10 +87,8 @@ class Erika:
             print('Printer found text in Queue')
             self.is_printing = True
             swriter = asyncio.StreamWriter(self.uart, {})
-            lines = self.string_to_lines(text)         
+            lines = self.string_to_lines(text)            
             for line in lines:
-                line += '\n'
-                print(line)
                 for char in line:
                     sent = False
                     while not sent:
@@ -119,8 +108,6 @@ class Erika:
                             # print("pausing")
                             sent = False
                             await asyncio.sleep_ms(40)
-
-                            
                         #await asyncio.sleep(0.5)
                 #await asyncio.sleep(0.5)
             # if linefeed:
@@ -224,20 +211,20 @@ class Erika:
         def action(self, action_str:str):
             action_str = action_str.replace(' ','_')
             print("Action: {}".format(action_str))
-            loop = asyncio.get_event_loop()
             try:
                 if '_on' in action_str.lower():
                     method_name = action_str[:-len('_on')]
                     method_to_call = getattr(self,method_name)
-                    loop.create_task(method_to_call(True))
+                    method_to_call(True)
                 elif '_off' in action_str.lower():
                     method_name = action_str[:-len('_off')]
                     method_to_call = getattr(self, method_name)
-                    loop.create_task(method_to_call(False))
+                    method_to_call(False)
                 else:
                     # TODO: everything to Async!
                     method_to_call = getattr(self, action_str)
-                    #method_to_call()                   
+                    #method_to_call()
+                    loop = asyncio.get_event_loop()
                     loop.create_task(method_to_call())
             except AttributeError:
                 print("Could not execute '{}'".format(action_str))
@@ -256,8 +243,8 @@ class Erika:
             mail_text = '\n'.join(lines)
             date_str = "/".join([str(t) for t in time.localtime()[0:3]])
             mail_subject = "Erika {}".format(date_str)         
-            do_connect()
-            send_mailgun(mail_subject=mail_subject, mail_text=mail_text)
+           
+            await send_mailgun(mail_subject=mail_subject, mail_text=mail_text)
             write_to_screen('Mailed {} lines'.format(len(lines)))
             # empty the buffer, so next mail will only include relevant text
             self.erika.input_lines_buffer = []
@@ -269,8 +256,8 @@ class Erika:
         async def typing(self, is_active):
             '''Typing echo on/of"'''
             print("Typing: {}".format(is_active))
-            self.erika.sender.set_keyboard_echo(is_active)
-            write_to_screen("Now typing is {}".format(is_active))
+            await self.erika.sender.set_keyboard_echo(is_active)
+            await write_to_screen("Now typing is {}".format(is_active))
 
 
     class Sender:
