@@ -23,7 +23,6 @@ ERIKA_CHANNEL_PRINT= b'{client_id}/{erika_id}/print'.format(client_id=MQQT_CLIEN
                                                                erika_id=MQQT_ERIKA_ID)  # erika/1/print                                                
 
 erika = None
-status = 1
 
 
 async def send_to_printer(text):
@@ -52,13 +51,9 @@ def sub_cb(topic, msg, retained):
 # status: ERIKA_STATE_OFFLINE, ERIKA_STATE_LISTENING, ERIKA_STATE_PRINTING
 async def set_status(client, status=1):
     global erika
-    last_status = 0
-    while True:
-        status = ERIKA_STATE_PRINTING if erika.is_printing else ERIKA_STATE_LISTENING
-        if last_status != status:
-            await client.publish(ERIKA_CHANNEL_STATUS, status, retain=True)
-            last_status = status
-        await asyncio.sleep(1)
+    status = ERIKA_STATE_PRINTING if erika.is_printing else ERIKA_STATE_LISTENING
+    await client.publish(ERIKA_CHANNEL_STATUS, status, retain=True)
+    asyncio.sleep(1)
 
 async def wifi_han(state):
     print('Wifi is ', 'up' if state else 'down')
@@ -66,10 +61,9 @@ async def wifi_han(state):
 
 # If you connect with clean_session True, must re-subscribe (MQTT spec 3.1.2.4)
 async def conn_han(client):
-    global status 
     print("Subscribing to Channel: {}".format(ERIKA_CHANNEL_PRINT))
     await client.subscribe(topic=ERIKA_CHANNEL_PRINT, qos=0)
-    status = 1
+    asyncio.create_task(set_status(client))
 
 async def start_mqqt_connection(the_erika):
     global erika
@@ -98,9 +92,9 @@ async def start_mqqt_connection(the_erika):
 
     try:
         await client.connect()
-        asyncio.create_task(set_status(client))
     except OSError:
+        print('Connection failed.')
         print('Connection failed. Retrying.')
-        await asyncio.sleep_ms(50)
+        await asyncio.sleep_ms(3000)
         asyncio.create_task(start_mqqt_connection(erika))
         return
