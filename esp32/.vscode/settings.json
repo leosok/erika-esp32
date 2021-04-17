@@ -1,4 +1,25 @@
 {
     "AREPL.pythonPath": "",
-    "python.pythonPath": "C:\\Users\\leosok\\AppData\\Local\\Programs\\Python\\Python39\\python.exe"
+    "python.pythonPath": "C:\\Users\\leosok\\AppData\\Local\\Programs\\Python\\Python39\\python.exe",
+    "python.linting.enabled": true,
+    "python.jediEnabled": false,
+    "python.autoComplete.extraPaths": [
+        ".micropy\\BradenM-micropy-stubs-3cc928b\\frozen",
+        ".micropy\\BradenM-micropy-stubs-e1b8ce6\\frozen",
+        ".micropy\\BradenM-micropy-stubs-3cc928b\\stubs",
+        ".micropy\\esp32"
+    ],
+    "python.autoComplete.typeshedPaths": [
+        ".micropy\\BradenM-micropy-stubs-3cc928b\\frozen",
+        ".micropy\\BradenM-micropy-stubs-e1b8ce6\\frozen",
+        ".micropy\\BradenM-micropy-stubs-3cc928b\\stubs",
+        ".micropy\\esp32"
+    ],
+    "python.analysis.typeshedPaths": [
+        ".micropy\\BradenM-micropy-stubs-3cc928b\\frozen",
+        ".micropy\\BradenM-micropy-stubs-e1b8ce6\\frozen",
+        ".micropy\\BradenM-micropy-stubs-3cc928b\\stubs",
+        ".micropy\\esp32"
+    ],
+    "python.linting.pylintEnabled": true
 }
