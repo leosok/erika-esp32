@@ -44,8 +44,8 @@ class Mailgun:
                 "subject":mail_subject,
                 "text": mail_text}
 
-        response =  post_formdata(
-            api_url,
+        response =  self.post_formdata(
+            self.api_url,
             headers=headers,
             data=ajson)
         

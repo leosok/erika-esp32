@@ -211,20 +211,22 @@ class Erika:
             action_str = action_str.replace(' ','_')
             print("Action: {}".format(action_str))
             try:
+                loop = asyncio.get_event_loop()
                 if '_on' in action_str.lower():
                     method_name = action_str[:-len('_on')]
                     method_to_call = getattr(self,method_name)
-                    method_to_call(True)
+                    method_attr = True
+                    loop.create_task(method_to_call(method_attr))
                 elif '_off' in action_str.lower():
                     method_name = action_str[:-len('_off')]
                     method_to_call = getattr(self, method_name)
-                    method_to_call(False)
+                    method_attr = False
+                    loop.create_task(method_to_call(method_attr))
                 else:
                     # TODO: everything to Async!
                     method_to_call = getattr(self, action_str)
-                    #method_to_call()
-                    loop = asyncio.get_event_loop()
-                    loop.create_task(method_to_call())
+                    loop.create_task(method_to_call())         
+               
             except AttributeError:
                 print("Could not execute '{}'".format(action_str))
 
@@ -243,7 +245,7 @@ class Erika:
             date_str = "/".join([str(t) for t in time.localtime()[0:3]])
             mail_subject = "Erika {}".format(date_str)         
            
-            mailgun = Mailgun(api_url=MAILGUN_API_KEY, api_key=MAILGUN_API_URL)
+            mailgun = Mailgun(api_url=MAILGUN_API_URL, api_key=MAILGUN_API_KEY)
             await mailgun.send_mailgun(
                 mail_subject=mail_subject,
                 mail_text=mail_text, 
@@ -261,9 +263,9 @@ class Erika:
     
         async def typing(self, is_active):
             '''Typing echo on/of"'''
-            print("Typing: {}".format(is_active))
-            await self.erika.sender.set_keyboard_echo(is_active)
-            await write_to_screen("Now typing is {}".format(is_active))
+            print("Typing is: {}".format(is_active))
+            self.erika.sender.set_keyboard_echo(is_active)
+            write_to_screen("Now typing is {}".format(is_active))
 
 
     class Sender:
