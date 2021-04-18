@@ -49,3 +49,11 @@
     /* border-radius: 5px; */
     
 }
+
+.content button:disabled{
+    cursor: pointer;
+    color: #888888;
+    font-family: Courier;
+    /* border-radius: 5px; */
+    
+}

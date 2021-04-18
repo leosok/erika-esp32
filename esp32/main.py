@@ -40,9 +40,5 @@ async def main():
        wlan_strength(1)
     )
 
-from utils import umailgun
 do_connect()
-time.sleep(2)
-umailgun.send_mailgun(umailgun.tsttxt)
-
 asyncio.run(main())

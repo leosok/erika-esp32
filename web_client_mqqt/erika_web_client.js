@@ -35,6 +35,7 @@ client = new Paho.MQTT.Client(config.MQQT_SERVER, 80, clientId);
 // set callback handlers
 client.onConnectionLost = onConnectionLost;
 client.onMessageArrived = onMessageArrived;
+doConnect();
 
 // Last will
 // var last_will = new Paho.MQTT.Message("last message");
@@ -42,12 +43,14 @@ client.onMessageArrived = onMessageArrived;
 
 // connect the client
 
-client.connect({
-  onSuccess: onConnect,
-  userName: config.MQQT_USERNAME,
-  password: config.MQQT_PASSWORD,
-  //willMessage: last_will,
-});
+function doConnect(){
+  client.connect({
+    onSuccess: onConnect,
+    userName: config.MQQT_USERNAME,
+    password: config.MQQT_PASSWORD,
+    //willMessage: last_will,
+  });
+}
 
 // called when the client connects
 function onConnect() {
@@ -55,6 +58,11 @@ function onConnect() {
   console.log("onConnect");
   client.subscribe(topics.show);
   client.subscribe(topics.status);
+  // disable reconnection timer
+  if (window.reconnection_timer) {
+      clearInterval(window.reconnection_timer);
+  }
+
 }
 
 // called when the client loses its connection
@@ -62,21 +70,30 @@ function onConnectionLost(responseObject) {
   if (responseObject.errorCode !== 0) {
     console.log("onConnectionLost:" + responseObject.errorMessage);
   }
+  // try reconnecting
+  console.log("Trying to reconnect...:");
+  doConnect();
+  // set a timer to try reconnecting
+  window.reconnection_timer = setInterval(doConnect(), 5000);
 }
 
 // called when a message arrives
 function onMessageArrived(message) {
   console.log(message.destinationName + ":" + message.payloadString);
+  var print_button = document.querySelector('#print_button')
 
   switch (message.destinationName) {
     case topics.status:
       status = message.payloadString;
       if (Number(status) == 2) {
         document.getElementById("status").innerHTML = "printing...";
+        print_button.disabled = true
+
       } else {
         document.getElementById("status").innerHTML = !!Number(status)
           ? "ready"
           : "offline";
+          print_button.disabled = false
       }
 
       console.log("status change:" + status);

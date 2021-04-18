@@ -1,45 +1,54 @@
-
-
-
 # Based on https://bradgignac.com/2014/05/12/sending-email-with-python-and-the-mailgun-api.html
+# pylint: disable=all
 
-import json
-import urequests as requests
-from utils.urlencode import urlencode
-from secrets import MAILGUN_API_KEY, CONFIG_MY_EMAIL
 import binascii
 import gc
-
-tsttxt = "Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus.Lorem ipsum dolor sit ameti, consectetur elit. Proin bibendum velit lacus."
-
-def post_formdata(url, data=None, json=None, headers=None):
-    if isinstance(data, dict):
-        headers = {} if headers is None else headers
-        headers['Content-Type'] = 'application/x-www-form-urlencoded'
-    gc.collect()
-    return requests.post(url, data=urlencode(data), json=json, headers=headers)
+import json
+from secrets import CONFIG_MY_EMAIL, MAILGUN_API_KEY, MAILGUN_API_URL
+import urequests as requests
+from utils.timeit import time_acc_function
+from utils.urlencode import urlencode
 
 
-def send_mailgun(mail_text, mail_from= "erika@news.belavo.co",mail_to=CONFIG_MY_EMAIL, mail_subject="Erika Transcript"):
+class Mailgun:
 
-    headers = {} 
-    auth_str = b"api:{}".format(MAILGUN_API_KEY)
-    # transcoding adds a \n character, we need to remove
-    auth_base = binascii.b2a_base64(auth_str).strip()
-    headers["Authorization"] = b"Basic " + auth_base
-    #headers["Authorization"] = "Basic YXBpOmJkYmRjYjg0M2EzZGZiYzI1YzQ4Y2Q4OTIwZjY1YTUxLTM5MzliOTNhLWQ5NWU2NWUz"
+    def __init__(self, api_key, api_url):
+        self.api_key = api_key
+        self.api_url = api_url
 
-    ajson = {
-            "from": mail_from,
-            "to": mail_to,
-            "subject":mail_subject,
-            "text": mail_text}
+
+    def post_formdata(self, url, data=None, json=None, headers=None):
+        # This function works well, as long as the data is small (<5kb). Above this urlencode fails
+        # on my esp32 because of memory fragmentation. A possible solution could be to use chunked 
+        # posting (async?) using urlencode chunk by chunk, avoiding 
+        
+        if isinstance(data, dict):
+            headers = {} if headers is None else headers
+            headers['Content-Type'] = 'application/x-www-form-urlencoded'
+        gc.collect()
+        return requests.post(url, data=urlencode(data), json=json, headers=headers)
+
+    @time_acc_function
+    def send_mailgun(self, mail_text, mail_from, mail_to, mail_subject):
+
+        headers = {} 
+        auth_str = b"api:{}".format(MAILGUN_API_KEY)
+        
+        # transcoding adds a \n character, we need to remove it
+        auth_base = binascii.b2a_base64(auth_str).strip()
+        headers["Authorization"] = b"Basic " + auth_base
     
-    #print(ajson)
+        ajson = {
+                "from": mail_from,
+                "to": mail_to,
+                "subject":mail_subject,
+                "text": mail_text}
 
-    r =  post_formdata(
-        "https://api.mailgun.net/v3/news.belavo.co/messages",
-        headers=headers,
-        data=ajson)
-    
-    print(r.text)
+        response =  post_formdata(
+            api_url,
+            headers=headers,
+            data=ajson)
+        
+        print(response.text)
+        return response
+

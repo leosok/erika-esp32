@@ -3,6 +3,7 @@
 #
 # Extracted from: https://github.com/micropython/micropython-lib/blob/master/urllib.parse/urllib/parse.py
 #
+import gc
 
 always_safe = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                'abcdefghijklmnopqrstuvwxyz'
@@ -16,6 +17,7 @@ def quote(s):
             res.append(c)
             continue
         res.append('%%%x' % ord(c))
+        gc.collect()
     return ''.join(res)
 
 def quote_plus(s):
@@ -47,10 +49,14 @@ def urlencode(query,quote_plus=False):
     for k, v in query:
         if quote_plus:
             k = quote_plus(str(k))
+            gc.collect()
             v = quote_plus(str(v))
+            gc.collect()
         else:
             k=str(k)
+            gc.collect()
             v=str(v)
+            gc.collect()
         l.append(k + '=' + v)
     return '&'.join(l)
 

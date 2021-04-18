@@ -1,4 +1,4 @@
-
+# pylint: disable=unused-wildcard-import, method-hidden
 
 from erika import char_map
 import time
@@ -8,8 +8,7 @@ import binascii
 import uasyncio as asyncio
 from primitives.queue import Queue
 from utils.screen_utils import write_to_screen
-from utils.umailgun import send_mailgun
-
+from utils.umailgun import Mailgun, CONFIG_MY_EMAIL, MAILGUN_API_KEY, MAILGUN_API_URL
 
 class Erika:
     DEFAULT_BAUD_RATE = 1200
@@ -185,7 +184,7 @@ class Erika:
         
         actions = {
             "hallo": "Print Hallo Welt",
-            "save": "Save Buffer to Pastee",
+            "save": "Mail to User",
             "help": "Prints this info",
             "typing": "Turn echo ON/OFF",
             "send": "send as mail"
@@ -244,7 +243,14 @@ class Erika:
             date_str = "/".join([str(t) for t in time.localtime()[0:3]])
             mail_subject = "Erika {}".format(date_str)         
            
-            await send_mailgun(mail_subject=mail_subject, mail_text=mail_text)
+            mailgun = Mailgun(api_url=MAILGUN_API_KEY, api_key=MAILGUN_API_URL)
+            await mailgun.send_mailgun(
+                mail_subject=mail_subject,
+                mail_text=mail_text, 
+                mail_from='erika@news.belavo.co', 
+                mail_to=CONFIG_MY_EMAIL
+                )
+
             write_to_screen('Mailed {} lines'.format(len(lines)))
             # empty the buffer, so next mail will only include relevant text
             self.erika.input_lines_buffer = []
