@@ -6,95 +6,87 @@ from secrets import MQQT_PASSWORD, MQQT_SERVER, MQQT_USERNAME, WLAN_SSID, WLAN_P
 import uasyncio as asyncio
 from mqtt_as import MQTTClient, config
 
+class ErikaMqqt:
+    ERIKA_STATE_OFFLINE = b'0'
+    ERIKA_STATE_LISTENING = b'1'
+    ERIKA_STATE_PRINTING = b'2'
+
+    def __init__(self, erika, mqqt_id='erika', erika_id='1'):
+        self.channel_status = b'{client_id}/{erika_id}/status'.format(client_id=mqqt_id,
+                                                                erika_id=erika_id)  # erika/1/status
+        self.channel_print = b'{client_id}/{erika_id}/print'.format(client_id=mqqt_id,
+                                                                erika_id=erika_id)  # erika/1/print                                         
+
+        self.erika = erika
+        self.mqqt_id = mqqt_id
+        self.erika_id = erika_id
+        self.client = None
 
 
-MQQT_CLIENT_ID = "erika"
-# This will be used for the status of your Erika on the MQQT-Broker.
-MQQT_ERIKA_ID = 1
+    async def start_mqqt_connection(self):
+        # moved here, so erika is not started by itself.
+        print("Starting MQQT Connection")
 
-ERIKA_STATE_OFFLINE = b'0'
-ERIKA_STATE_LISTENING = b'1'
-ERIKA_STATE_PRINTING = b'2'
-
-ERIKA_CHANNEL_STATUS = b'{client_id}/{erika_id}/status'.format(client_id=MQQT_CLIENT_ID,
-                                                               erika_id=MQQT_ERIKA_ID)  # erika/1/status
-
-ERIKA_CHANNEL_PRINT= b'{client_id}/{erika_id}/print'.format(client_id=MQQT_CLIENT_ID,
-                                                               erika_id=MQQT_ERIKA_ID)  # erika/1/print                                                
-
-erika = None
-
-
-async def send_to_printer(text):
-    await erika.queue.put(text)
-
-
-def sub_cb(topic, msg, retained):
-    global erika
-
-    msg_str = str(msg, 'UTF-8')
-    print(topic + ":" + msg_str)
-    
-    if "show" in topic:
-        write_to_screen(msg_str)
-    if "print" in topic:
-        print("Got something to print...")
-        asyncio.create_task(send_to_printer(msg_str))
-        # set status needs to be changed. Needs to be set in printer and checked by mqqt in some loop
+        # Define configuration
+        config['subs_cb'] = self.sub_cb
+        config['wifi_coro'] = self.wifi_han
+        config['will'] = (self.channel_status, self.ERIKA_STATE_OFFLINE, True, 0)
+        config['connect_coro'] = self.conn_han
+        config['keepalive'] = 120
         
+        config['server'] = MQQT_SERVER
+        config['user'] = MQQT_USERNAME
+        config['password'] = MQQT_PASSWORD
+        config['ssid'] = WLAN_SSID
+        config['wifi_pw'] = WLAN_PASSWORD
 
-# Will start a connection to the mqtt-broker using
-# check_msg_interval: integer, milliseconds
+        config['client_id'] = self.mqqt_id
+        # config['clean'] = False
+
+        self.client = MQTTClient(config)
+
+        try:
+            await self.client.connect()
+        except OSError:
+            print('Connection failed.')
+            print('Connection failed. Retrying.')
+            await asyncio.sleep_ms(3000)
+            asyncio.create_task(self.start_mqqt_connection())
+            return
 
 
-# Changes the status of this Erika on the erika/n/status channel
-# status: ERIKA_STATE_OFFLINE, ERIKA_STATE_LISTENING, ERIKA_STATE_PRINTING
-async def set_status(client, status=1):
-    global erika
-    status = ERIKA_STATE_PRINTING if erika.is_printing else ERIKA_STATE_LISTENING
-    await client.publish(ERIKA_CHANNEL_STATUS, status, retain=True)
-    asyncio.sleep(1)
+    async def send_to_printer(self,text):
+        await self.set_status(self.ERIKA_STATE_PRINTING)
+        await self.erika.queue.put(text)
+        await asyncio.sleep_ms(100)
+        while self.erika.is_printing:
+            await asyncio.sleep_ms(100)
+        await self.set_status(self.ERIKA_STATE_LISTENING)
 
-async def wifi_han(state):
-    print('Wifi is ', 'up' if state else 'down')
-    await asyncio.sleep_ms(30)
 
-# If you connect with clean_session True, must re-subscribe (MQTT spec 3.1.2.4)
-async def conn_han(client):
-    print("Subscribing to Channel: {}".format(ERIKA_CHANNEL_PRINT))
-    await client.subscribe(topic=ERIKA_CHANNEL_PRINT, qos=0)
-    asyncio.create_task(set_status(client))
+    def sub_cb(self, topic, msg, retained):
+        msg_str = str(msg, 'UTF-8')
+        print(topic + ":" + msg_str)
+        
+        if "show" in topic:
+            write_to_screen(msg_str)
+        if "print" in topic:
+            print("Got something to print...")
+            asyncio.create_task(self.send_to_printer(msg_str))
+            # set status needs to be changed. Needs to be set in printer and checked by mqqt in some loop
+            
 
-async def start_mqqt_connection(the_erika):
-    global erika
-    erika = the_erika
+    # Changes the status of this Erika on the erika/n/status channel
+    # status: ERIKA_STATE_OFFLINE, ERIKA_STATE_LISTENING, ERIKA_STATE_PRINTING
+    async def set_status(self, status):
+        await self.client.publish(self.channel_status, status, retain=True)
 
-    # moved here, so erika is not started by itself.
-    print("Starting MQQT Connection")
+    async def wifi_han(self, state):
+        print('Wifi is ', 'up' if state else 'down')
+        await asyncio.sleep_ms(30)
 
-    # Define configuration
-    config['subs_cb'] = sub_cb
-    config['wifi_coro'] = wifi_han
-    config['will'] = (ERIKA_CHANNEL_STATUS, ERIKA_STATE_OFFLINE, True, 0)
-    config['connect_coro'] = conn_han
-    config['keepalive'] = 120
-    
-    config['server'] = MQQT_SERVER
-    config['user'] = MQQT_USERNAME
-    config['password'] = MQQT_PASSWORD
-    config['ssid'] = WLAN_SSID
-    config['wifi_pw'] = WLAN_PASSWORD
-
-    config['client_id'] = MQQT_CLIENT_ID
-    # config['clean'] = False
-
-    client = MQTTClient(config)
-
-    try:
-        await client.connect()
-    except OSError:
-        print('Connection failed.')
-        print('Connection failed. Retrying.')
-        await asyncio.sleep_ms(3000)
-        asyncio.create_task(start_mqqt_connection(erika))
-        return
+    # If you connect with clean_session True, must re-subscribe (MQTT spec 3.1.2.4)
+    async def conn_han(self, client):
+        print("Subscribing to Channel: {}".format(self.channel_print))
+        await client.subscribe(topic=self.channel_print, qos=0)
+        asyncio.create_task(self.set_status(self.ERIKA_STATE_LISTENING))
