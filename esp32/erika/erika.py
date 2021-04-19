@@ -246,7 +246,7 @@ class Erika:
             mail_subject = "Erika {}".format(date_str)         
            
             mailgun = Mailgun(api_url=MAILGUN_API_URL, api_key=MAILGUN_API_KEY)
-            await mailgun.send_mailgun(
+            mailgun.send_mailgun(
                 mail_subject=mail_subject,
                 mail_text=mail_text, 
                 mail_from='erika@news.belavo.co', 

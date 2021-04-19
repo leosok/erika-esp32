@@ -48,4 +48,15 @@ async def main():
 screen.starting()
 do_connect()
 set_time()
+
+# from utils.umailgun import Mailgun, CONFIG_MY_EMAIL, MAILGUN_API_KEY, MAILGUN_API_URL
+# mailgun = Mailgun(api_url=MAILGUN_API_URL, api_key=MAILGUN_API_KEY)
+# mailgun.send_mailgun(
+#     mail_subject="Subject",
+#     mail_text="Hallo Hallo Hallo", 
+#     mail_from='erika@news.belavo.co', 
+#     mail_to=CONFIG_MY_EMAIL
+#     )
+
+
 asyncio.run(main())
