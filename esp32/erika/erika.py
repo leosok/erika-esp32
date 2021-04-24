@@ -83,11 +83,13 @@ class Erika:
     async def printer(self, queue, linefeed=True):
         while True:
             text = await queue.get()  # Blocks until data is ready
-            print('Printer found text in Queue')
+            print('Printer found text in Queue (1)')
             self.is_printing = True
             swriter = asyncio.StreamWriter(self.uart, {})
-            lines = self.string_to_lines(text)            
+            lines = self.string_to_lines(text)  
+            print(lines)          
             for line in lines:
+                print(line)
                 for char in line:
                     sent = False
                     while not sent:
@@ -107,12 +109,7 @@ class Erika:
                             # print("pausing")
                             sent = False
                             await asyncio.sleep_ms(40)
-                        #await asyncio.sleep(0.5)
-                #await asyncio.sleep(0.5)
-            # if linefeed:
-            #     newline = self.ddr_2_ascii.encode('\n')
-            #     swriter.write(newline)
-            #     await swriter.drain()
+
             self.is_printing = False
             print('printer done for now')
             
@@ -139,15 +136,16 @@ class Erika:
 
     # Returns an array of lines with a max_length of DEFAULT_LINE_LENGTH
 
-    def string_to_lines(self, text, max_length=DEFAULT_LINE_LENGTH):
+    def string_to_lines(self, text, max_length=DEFAULT_LINE_LENGTH, linefeed=True):
         #print("strtolines ({}): {}".format(max_length, text))
         words = text.split()
         lines = []
         tmp_line = ''
+        newline = '\n' if linefeed else ''
 
         # If the text is less than a line, return it
         if len(text) <= max_length:
-            return [text]
+            return [text + newline]
 
         # else split to lines
         for word in words:
@@ -155,11 +153,11 @@ class Erika:
             if len(next) <= max_length:
                 tmp_line = next
             else:
-                lines.append(tmp_line.strip())
+                lines.append(tmp_line.strip() + newline)
                 tmp_line = word
 
         # for the last words
-        lines.append(tmp_line.strip())
+        lines.append(tmp_line.strip() + newline)
 
         #print("strtolines ({}): {}".format(len(lines[0]), lines))
         return lines
