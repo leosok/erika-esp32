@@ -10,6 +10,10 @@ from primitives.queue import Queue
 from utils.screen_utils import write_to_screen
 from utils.umailgun import Mailgun, CONFIG_MY_EMAIL, MAILGUN_API_KEY, MAILGUN_API_URL
 
+# For more stuff see:
+# https://github.com/Chaostreff-Potsdam/erika3004/blob/5886ae8af26bc73716dcc848c19a5fa46c7c59c4/erika/erika.py
+
+
 class Erika:
     DEFAULT_BAUD_RATE = 1200
     DEFAULT_LINE_LENGTH = 60
@@ -83,7 +87,7 @@ class Erika:
     async def printer(self, queue, linefeed=True):
         while True:
             text = await queue.get()  # Blocks until data is ready
-            print('Printer found text in Queue (1)')
+            print('Printer found text in Queue')
             self.is_printing = True
             swriter = asyncio.StreamWriter(self.uart, {})
             lines = self.string_to_lines(text)  
@@ -134,33 +138,36 @@ class Erika:
 
     
 
-    # Returns an array of lines with a max_length of DEFAULT_LINE_LENGTH
-
-    def string_to_lines(self, text, max_length=DEFAULT_LINE_LENGTH, linefeed=True):
-        #print("strtolines ({}): {}".format(max_length, text))
-        words = text.split()
+    def string_to_lines(self, text, max_length=DEFAULT_LINE_LENGTH):
+        '''
+        Returns an array of lines with a max_length of DEFAULT_LINE_LENGTH
+        All newlines from the original lines are used
+        in case a line is to long, an extra newline is inserted
+        '''
+        newline = '\n'
+        all_lines = text.split(newline)
         lines = []
-        tmp_line = ''
-        newline = '\n' if linefeed else ''
+        for aline in all_lines:
+            words = aline.split()
+            tmp_line = ''
 
-        # If the text is less than a line, return it
-        if len(text) <= max_length:
-            return [text + newline]
-
-        # else split to lines
-        for word in words:
-            next = ' '.join([tmp_line, word])
-            if len(next) <= max_length:
-                tmp_line = next
+            # If the text is less than a line, return it
+            if len(text) <= max_length:
+                lines.append(text + newline)
             else:
+                # else split to lines
+                for word in words:
+                    next = ' '.join([tmp_line, word])
+                    if len(next) <= max_length:
+                        tmp_line = next
+                    else:
+                        lines.append(tmp_line.strip() + newline)
+                        tmp_line = word
+
+                # for the last words
                 lines.append(tmp_line.strip() + newline)
-                tmp_line = word
+        return lines    
 
-        # for the last words
-        lines.append(tmp_line.strip() + newline)
-
-        #print("strtolines ({}): {}".format(len(lines[0]), lines))
-        return lines
 
     def _save_lines_to_file(self, lines, filename='saved_lines.txt'):
         f = open(filename, 'a')
