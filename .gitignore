@@ -133,3 +133,10 @@ web_client_mqqt/mqqt_config.js
 esp32/secrets.py
 .vscode/arduino.json
 esp32/saved_lines.txt
+
+web_server_mqqt_receiver/pyvenv.cfg
+web_server_mqqt_receiver/Scripts
+web_server_mqqt_receiver/secrets.py
+
+*.db
+web_server_mqqt_receiver/diary.py
