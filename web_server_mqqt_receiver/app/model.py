@@ -1,5 +1,6 @@
 
 from peewee import *
+from datetime import datetime
 
 
 db = SqliteDatabase(None)
@@ -7,7 +8,7 @@ db = SqliteDatabase(None)
 
 class Textdata(Model):
     content = TextField()
-    timestamp = DateTimeField(default=datetime.datetime.now)
+    timestamp = DateTimeField(default=datetime.now)
     hashid = CharField()
 
     class Meta:

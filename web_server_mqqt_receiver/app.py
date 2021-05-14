@@ -1,17 +1,18 @@
 from bottle import route, run
-import paho.mqtt.client as mqtt
+
 import time
 from secrets import MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD
 import json
 
-
-
-
+import app.model
+import app.mqqt
 
 
 @route('/hello')
 def hello():
     return "Hello World!" 
 
-run(host='localhost', port=8080, debug=True)
+app.mqqt.start_mqqt(MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD)
+
+#run(host='localhost', port=8080, debug=True)
 
