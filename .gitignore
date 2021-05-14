@@ -140,3 +140,5 @@ web_server_mqqt_receiver/secrets.py
 
 *.db
 web_server_mqqt_receiver/diary.py
+web_server_mqqt_receiver/Include/
+web_server_mqqt_receiver/share/

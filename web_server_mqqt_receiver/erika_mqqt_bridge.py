@@ -8,11 +8,9 @@ import app.model
 import app.mqqt
 
 
-@route('/hello')
-def hello():
-    return "Hello World!" 
+# Create/Open database
+app.model.initialize_models()
 
 app.mqqt.start_mqqt(MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD)
 
-#run(host='localhost', port=8080, debug=True)
 

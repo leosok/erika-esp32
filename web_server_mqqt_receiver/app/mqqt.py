@@ -1,6 +1,12 @@
 import paho.mqtt.client as mqtt
 import json
+import logging
+from app.model import Textdata
+from peewee import IntegrityError
 
+logging.basicConfig()
+logger = logging.getLogger("erika_mqqt_bridge")
+logger.setLevel(logging.DEBUG)
 
 
 def start_mqqt(mqqt_server, mqqt_user, mqqt_password, subscribe_to="erika/1/print", qos=0):
@@ -18,18 +24,19 @@ def start_mqqt(mqqt_server, mqqt_user, mqqt_password, subscribe_to="erika/1/prin
     mqttc.username_pw_set(mqqt_user, password=mqqt_password)
     mqttc.connect(mqqt_server, 1883, 60)
     mqttc.subscribe(subscribe_to, qos)
-
     mqttc.loop_forever()
 
 
 def on_message(mqttc, obj, msg):
-
   try:
     data = json.loads(msg.payload.decode())
-    if data['doc']:
-      print(data['line'])
+    logger.info(data)
+    try:
+      Textdata.create(content=data['line'], hashid=data['hashid'])
+    except IntegrityError:
+      logger.info("Already saved line {}".format(data['line']))
   except ValueError as e:
-    print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+    logger.info(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
  
   return True
     
