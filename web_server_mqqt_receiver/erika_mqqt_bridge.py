@@ -1,9 +1,4 @@
-from bottle import route, run
-
-import time
 from secrets import MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD
-import json
-
 import app.model
 import app.mqqt
 
