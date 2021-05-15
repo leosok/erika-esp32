@@ -19,13 +19,13 @@ def _close_db():
 @route('/pages/')
 @view('all_pages.tpl.html')
 def all():
-    pages = Textdata.select().group_by(Textdata.hashid)
+    pages = Textdata.select().order_by(Textdata.timestamp.asc()).group_by(Textdata.hashid)
     return dict(pages=pages)
 
 @route('/pages/<hashid>')
 @view('single_page.tpl.html')
 def single(hashid):
-    lines = Textdata.select().where(Textdata.hashid==hashid)
+    lines = Textdata.select().where(Textdata.hashid==hashid).order_by(Textdata.timestamp.asc())
     return dict(lines=lines)
 
 initialize_models()
