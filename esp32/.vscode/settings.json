@@ -1,6 +1,6 @@
 {
     "AREPL.pythonPath": "",
-    "python.pythonPath": "C:\\Users\\leosok\\AppData\\Local\\Programs\\Python\\Python39\\python.exe",
+    "python.pythonPath": "c:\\coding\\erika-esp32\\esp32\\venv\\Scripts\\python.exe",
     "python.linting.enabled": false,
     "python.jediEnabled": false,
     "python.autoComplete.extraPaths": [

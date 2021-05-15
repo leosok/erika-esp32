@@ -15,7 +15,8 @@ class ErikaMqqt:
         self.channel_status = b'{client_id}/{erika_id}/status'.format(client_id=mqqt_id,
                                                                 erika_id=erika_id)  # erika/1/status
         self.channel_print = b'{client_id}/{erika_id}/print'.format(client_id=mqqt_id,
-                                                                erika_id=erika_id)  # erika/1/print                                         
+                                                                erika_id=erika_id)  # erika/1/print   
+        self.channel_upload = b'{client_id}/upload'.format(client_id=mqqt_id)  # erika/upload                                         
 
         self.erika = erika
         self.mqqt_id = mqqt_id
@@ -90,3 +91,23 @@ class ErikaMqqt:
         print("Subscribing to Channel: {}".format(self.channel_print))
         await client.subscribe(topic=self.channel_print, qos=0)
         asyncio.create_task(self.set_status(self.ERIKA_STATE_LISTENING))
+
+    # "Upload" a textfile via mqqt
+    async def upload_text_file(self, filename='saved_lines.txt'):
+        import uuid
+        import json
+        hashid = str(uuid.uuid4())[:8]
+        
+        f = open(filename, 'r')
+        i=0
+        for line in f:
+            i+=1
+            line_json = {
+                "hashid": hashid,
+                "line": '{}'.format(line.strip()),
+                "lnum": b'{}'.format(i)
+            }
+            print("line: {} {}".format(i, json.dumps(line_json)))
+            await self.client.publish(self.channel_upload, json.dumps(line_json), qos=1)
+            asyncio.sleep(0.3)
+        f.close()

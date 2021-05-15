@@ -10,6 +10,7 @@ class Textdata(Model):
     content = TextField()
     timestamp = DateTimeField(default=datetime.now)
     hashid = CharField()
+    line_number = IntegerField()
 
     class Meta:
         database = db

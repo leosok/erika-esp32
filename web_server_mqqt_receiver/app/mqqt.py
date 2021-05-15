@@ -9,7 +9,7 @@ logger = logging.getLogger("erika_mqqt_bridge")
 logger.setLevel(logging.DEBUG)
 
 
-def start_mqqt(mqqt_server, mqqt_user, mqqt_password, subscribe_to="erika/1/print", qos=0):
+def start_mqqt(mqqt_server, mqqt_user, mqqt_password, subscribe_to="erika/1/print", qos=1):
     # If you want to use a specific client id, use
     # mqttc = mqtt.Client("client-id")
     # but note that the client id must be unique on the broker. Leaving the client
@@ -29,10 +29,10 @@ def start_mqqt(mqqt_server, mqqt_user, mqqt_password, subscribe_to="erika/1/prin
 
 def on_message(mqttc, obj, msg):
   try:
-    data = json.loads(msg.payload.decode())
+    data = json.loads(msg.payload)
     logger.info(data)
     try:
-      Textdata.create(content=data['line'], hashid=data['hashid'])
+      Textdata.create(content=data['line'], hashid=data['hashid'], line_number=data['lnum'])
     except IntegrityError:
       logger.info("Already saved line {}".format(data['line']))
   except ValueError as e:

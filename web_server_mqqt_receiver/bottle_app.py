@@ -1,10 +1,16 @@
-from bottle import route, run, hook, view, default_app
+from bottle import route, run, hook, view, default_app, request, redirect
 import time
 import json
-
+import logging
 from app.model import db, initialize_models, Textdata
 
+logging.basicConfig()
+logger = logging.getLogger('erika_bottle')
+logger.setLevel(logging.DEBUG)
 
+@hook('before_request')
+def strip_path():
+    request.environ['PATH_INFO'] = request.environ['PATH_INFO'].rstrip('/')
 
 @hook('before_request')
 def _connect_db():
@@ -16,7 +22,7 @@ def _close_db():
         db.close()
         
 
-@route('/pages/')
+@route('/pages')
 @view('all_pages.tpl.html')
 def all():
     pages = Textdata.select().order_by(Textdata.timestamp.asc()).group_by(Textdata.hashid)
@@ -25,8 +31,13 @@ def all():
 @route('/pages/<hashid>')
 @view('single_page.tpl.html')
 def single(hashid):
-    lines = Textdata.select().where(Textdata.hashid==hashid).order_by(Textdata.timestamp.asc())
-    return dict(lines=lines)
+    if request.query.action == "delete":
+        logger.info(f"Deleting {hashid}")
+        Textdata.delete().where(Textdata.hashid==hashid).execute()
+        redirect("/pages")
+    else:
+        lines = Textdata.select().where(Textdata.hashid==hashid).order_by(Textdata.line_number)
+        return dict(lines=lines)
 
 initialize_models()
 db.close()

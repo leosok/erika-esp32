@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<base href="/pages/">
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
@@ -18,7 +19,7 @@
         <![endif]-->
         <ul>
             % for page in pages:
-                <li>{{page.timestamp}} <a href="{{page.hashid}}">{{page.hashid}}</a> Lines: {{page.count_lines(page.hashid)}})}}</li>
+                <li>{{page.timestamp}} <a href="{{page.hashid}}">{{page.hashid}}</a> Lines: {{page.count_lines(page.hashid)}})}}   <b><a href="{{page.hashid}}?action=delete">delete</a></b></li>
             % end
         </ul>
         <script src="" async defer></script>

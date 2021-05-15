@@ -17,10 +17,8 @@
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
         <ul>
-            % i = 0
             % for line in lines:
-                % i+=1
-                <p>{{i}} {{line.content}}</p>
+                <p>{{line.line_number}} {{line.content}}</p>
             % end
         </ul>
         <script src="" async defer></script>
