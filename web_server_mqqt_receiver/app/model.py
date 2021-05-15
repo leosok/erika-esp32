@@ -22,6 +22,21 @@ class Textdata(Model):
         result = cls.select().where(cls.hashid == hashid).count()
         return result
 
+    
+    @classmethod
+    def as_fulltext(cls, hashid, min_length=30):
+        '''
+        Everything < min_length will be put in a seperate line
+        '''
+        lines = cls.select().where(cls.hashid==hashid).order_by(cls.line_number)
+        fulltext = ''
+        for line in lines:
+            if len(line.content) <= min_length:
+                fulltext += line.content + '\n'
+            else:
+                fulltext += line.content + ' '
+        return fulltext
+        
 
 
 def initialize_models():

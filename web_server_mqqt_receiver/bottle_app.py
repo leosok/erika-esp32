@@ -37,7 +37,7 @@ def single(hashid):
         redirect("/pages")
     else:
         lines = Textdata.select().where(Textdata.hashid==hashid).order_by(Textdata.line_number)
-        return dict(lines=lines)
+        return dict(lines=lines, fulltext=Textdata.as_fulltext(hashid))
 
 initialize_models()
 db.close()
