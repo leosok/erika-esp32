@@ -19,11 +19,9 @@
         <![endif]-->
         <ul>
             % for page in pages:
-                <li>{{page.timestamp}} <a href="{{page.hashid}}">{{page.hashid}}</a> Lines: {{page.count_lines(page.hashid)}})}}   <b><a href="{{page.hashid}}?action=delete">delete</a></b></li>
+                <li>{{page.timestamp.strftime("%d.%m.%Y %H:%M:%S")}}  |  <a href="{{page.hashid}}">{{page.hashid}}</a> |  Lines: {{page.count_lines(page.hashid)}} |         <b><a href="{{page.hashid}}?action=delete">delete</a></b></li>
             % end
         </ul>
         <script src="" async defer></script>
     </body>
 </html>
-
-
