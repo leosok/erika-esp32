@@ -1,10 +1,11 @@
-from utils.screen_utils import write_to_screen
+from utils.screen_utils import write_to_screen, show_progress
 import time
 from machine import Timer
 from erika import Erika
 from secrets import MQQT_PASSWORD, MQQT_SERVER, MQQT_USERNAME, WLAN_SSID, WLAN_PASSWORD
 import uasyncio as asyncio
 from mqtt_as import MQTTClient, config
+from utils.misc import file_lines_count
 
 class ErikaMqqt:
     ERIKA_STATE_OFFLINE = b'0'
@@ -98,6 +99,8 @@ class ErikaMqqt:
         import json
         hashid = str(uuid.uuid4())[:8]
         
+        file_line_count = file_lines_count(filename) 
+        start_time = time.ticks_ms()
         f = open(filename, 'r')
         i=0
         for line in f:
@@ -107,7 +110,18 @@ class ErikaMqqt:
                 "line": '{}'.format(line.strip()),
                 "lnum": b'{}'.format(i)
             }
-            print("line: {} {}".format(i, json.dumps(line_json)))
+            #print("line: {} {}".format(i, json.dumps(line_json)))
             await self.client.publish(self.channel_upload, json.dumps(line_json), qos=1)
-            asyncio.sleep(0.3)
+            asyncio.sleep(0.05)
+            show_progress(progress=i,max=file_line_count)
         f.close()
+        process_time = round((time.ticks_ms() - start_time) / 1000)
+        write_to_screen("Ok. {} in {}s".format(i,process_time), margin=5)
+        
+        # send command to send the email
+        command_json = {"cmd": "email",
+                        "from":"erika@bla.bla",
+                        "to":"l.sokolov@gmx.de"
+                        }
+        await self.client.publish(self.channel_upload, json.dumps(command_json), qos=1)
+

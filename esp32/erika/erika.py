@@ -20,6 +20,7 @@ class Erika:
     DEFAULT_DELAY = 0.02
     RTS_PIN = 22
     CTS_PIN = 21
+    TEMP_LINES_FILE = "saved_lines.txt"
     # Using an Array for ACTION_PROMT_STRING, because Char does not work with REL
     ACTION_PROMT_CHARS = ["REL","REL","REL"]
     ACTION_PROMT_STRING = ''.join(ACTION_PROMT_CHARS)
@@ -47,8 +48,8 @@ class Erika:
         self.is_printing=False
 
         self.keyboard_echo = True
-        # asyncio
-        # self.start_receiver()
+        # this is a way to upload files:
+        self.mqqt_client = None
 
     # async def print_test(self, queue, counter):
     #     while True:
@@ -169,7 +170,7 @@ class Erika:
         return lines    
 
 
-    def _save_lines_to_file(self, lines, filename='saved_lines.txt'):
+    def _save_lines_to_file(self, lines, filename=TEMP_LINES_FILE):
         f = open(filename, 'a')
         # if it's just one line fake an array
         if type(lines) is str:
@@ -243,24 +244,15 @@ class Erika:
         async def send(self):
             '''Send as Mail'''
             # this last line has the ;;:save command
-            buffer = self.erika.input_lines_buffer
-            lines = buffer[:len(self.erika.input_lines_buffer)-1:]
-            
-            mail_text = '\n'.join(lines)
-            date_str = "/".join([str(t) for t in time.localtime()[0:3]])
-            mail_subject = "Erika {}".format(date_str)         
-           
-            mailgun = Mailgun(api_url=MAILGUN_API_URL, api_key=MAILGUN_API_KEY)
-            mailgun.send_mailgun(
-                mail_subject=mail_subject,
-                mail_text=mail_text, 
-                mail_from='erika@news.belavo.co', 
-                mail_to=CONFIG_MY_EMAIL
-                )
-
-            write_to_screen('Mailed {} lines'.format(len(lines)))
-            # empty the buffer, so next mail will only include relevant text
+            await self.erika.mqqt_client.upload_text_file(self.erika.TEMP_LINES_FILE)
             self.erika.input_lines_buffer = []
+
+        async def clear_lines(self):
+            '''resets the temp file'''
+            # this last line has the ;;:save command
+            open(self.erika.TEMP_LINES_FILE, "w").close()
+            write_to_screen("Tempfile clear.")
+
 
         def help(self):
             '''Prints all Controll-Functions'''

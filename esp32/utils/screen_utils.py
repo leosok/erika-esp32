@@ -42,13 +42,22 @@ def starting():
   oled.show()
   #oled.text('MicroPython', 20, 20)
 
-def write_to_screen(text):
+def write_to_screen(text, margin=20):
   print("Screen: " + text)
   reset(5)
   #oled.fill_rect(0, 50, oled.width, oled.height-50, 0)
-  oled.text(text, 20, 50)
+  oled.text(text, margin, 50)
   oled.show()
  
+def show_progress(progress=0, max=100):
+  reset(5)
+  margin = 10
+  current_width = round((oled.width-margin) / max * progress)
+  oled.rect(margin, 50, oled.width-margin, 5, 50) # outer rect
+  oled.fill_rect(margin, 50, current_width, 5, 50) # filling
+  oled.rect(margin, 50, oled.width-margin, 5, 50) # outer rect
+  oled.show()
+
 
 def sleep_player():
   import time

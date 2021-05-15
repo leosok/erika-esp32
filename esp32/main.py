@@ -20,6 +20,7 @@ def set_time():
 
 erika = Erika()
 erika_mqqt = ErikaMqqt(erika=erika)
+erika.mqqt_client = erika_mqqt
 
 
 async def wlan_strength(max=5):
@@ -50,4 +51,4 @@ do_connect()
 set_time()
 
 asyncio.run(main())
-#loop=asyncio.get_event_loop(); loop.create_task(erika_mqqt.upload_text_file()); loop.run_forever()
+#loop=asyncio.get_event_loop(); loop.create_task(erika_mqqt.upload_text_file("saved_lines copy.txt")); loop.run_forever()
