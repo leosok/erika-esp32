@@ -1,4 +1,4 @@
-from bottle import route, run, hook, view
+from bottle import route, run, hook, view, default_app
 import time
 import json
 
@@ -30,4 +30,7 @@ def single(hashid):
 
 initialize_models()
 db.close()
-run(host='localhost', port=8080, debug=True, reloader=True)
+application = default_app()
+
+if __name__ == "__main__":
+    run(host='localhost', port=8080, debug=True, reloader=True)
