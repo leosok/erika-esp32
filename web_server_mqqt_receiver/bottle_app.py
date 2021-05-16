@@ -41,7 +41,7 @@ def single(hashid):
 
 
 @route('/incoming', method='POST')
-def icoming_webhook():
+def incoming_webhook():
     logger.info("request:")
     logger.info(request.body.read())
     return "ok"
