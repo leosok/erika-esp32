@@ -39,6 +39,14 @@ def single(hashid):
         lines = Textdata.select().where(Textdata.hashid==hashid).order_by(Textdata.line_number)
         return dict(lines=lines, fulltext=Textdata.as_fulltext(hashid))
 
+
+@route('/incoming', method='POST')
+def icoming_webhook():
+    logger.info("request:")
+    logger.info(request.body.read())
+    return "ok"
+
+
 initialize_models()
 db.close()
 application = default_app()
