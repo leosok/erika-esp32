@@ -1,11 +1,12 @@
+from utils.misc import file_lines_count
+from mqtt_as import MQTTClient, config
+import uasyncio as asyncio
 from utils.screen_utils import write_to_screen, show_progress
 import time
 from machine import Timer
 from erika import Erika
-from secrets import MQQT_PASSWORD, MQQT_SERVER, MQQT_USERNAME, WLAN_SSID, WLAN_PASSWORD
-import uasyncio as asyncio
-from mqtt_as import MQTTClient, config
-from utils.misc import file_lines_count
+from secrets import MQQT_PASSWORD, MQQT_SERVER, MQQT_USERNAME, WLAN_SSID, WLAN_PASSWORD, EMAIL_FROM, EMAIL_TO
+
 
 class ErikaMqqt:
     ERIKA_STATE_OFFLINE = b'0'
@@ -14,16 +15,16 @@ class ErikaMqqt:
 
     def __init__(self, erika, mqqt_id='erika', erika_id='1'):
         self.channel_status = b'{client_id}/{erika_id}/status'.format(client_id=mqqt_id,
-                                                                erika_id=erika_id)  # erika/1/status
+                                                                      erika_id=erika_id)  # erika/1/status
         self.channel_print = b'{client_id}/{erika_id}/print'.format(client_id=mqqt_id,
-                                                                erika_id=erika_id)  # erika/1/print   
-        self.channel_upload = b'{client_id}/upload'.format(client_id=mqqt_id)  # erika/upload                                         
+                                                                    erika_id=erika_id)  # erika/1/print
+        # erika/upload
+        self.channel_upload = b'{client_id}/upload'.format(client_id=mqqt_id)
 
         self.erika = erika
         self.mqqt_id = mqqt_id
         self.erika_id = erika_id
         self.client = None
-
 
     async def start_mqqt_connection(self):
         # moved here, so erika is not started by itself.
@@ -32,10 +33,11 @@ class ErikaMqqt:
         # Define configuration
         config['subs_cb'] = self.sub_cb
         config['wifi_coro'] = self.wifi_han
-        config['will'] = (self.channel_status, self.ERIKA_STATE_OFFLINE, True, 0)
+        config['will'] = (self.channel_status,
+                          self.ERIKA_STATE_OFFLINE, True, 0)
         config['connect_coro'] = self.conn_han
         config['keepalive'] = 120
-        
+
         config['server'] = MQQT_SERVER
         config['user'] = MQQT_USERNAME
         config['password'] = MQQT_PASSWORD
@@ -56,8 +58,7 @@ class ErikaMqqt:
             asyncio.create_task(self.start_mqqt_connection())
             return
 
-
-    async def send_to_printer(self,text):
+    async def send_to_printer(self, text):
         await self.set_status(self.ERIKA_STATE_PRINTING)
         await self.erika.queue.put(text)
         await asyncio.sleep_ms(100)
@@ -65,21 +66,20 @@ class ErikaMqqt:
             await asyncio.sleep_ms(100)
         await self.set_status(self.ERIKA_STATE_LISTENING)
 
-
     def sub_cb(self, topic, msg, retained):
         msg_str = str(msg, 'UTF-8')
         print(topic + ":" + msg_str)
-        
+
         if "show" in topic:
             write_to_screen(msg_str)
         if "print" in topic:
             print("Got something to print...")
             asyncio.create_task(self.send_to_printer(msg_str))
             # set status needs to be changed. Needs to be set in printer and checked by mqqt in some loop
-            
 
     # Changes the status of this Erika on the erika/n/status channel
     # status: ERIKA_STATE_OFFLINE, ERIKA_STATE_LISTENING, ERIKA_STATE_PRINTING
+
     async def set_status(self, status):
         await self.client.publish(self.channel_status, status, retain=True)
 
@@ -98,13 +98,13 @@ class ErikaMqqt:
         import uuid
         import json
         hashid = str(uuid.uuid4())[:8]
-        
-        file_line_count = file_lines_count(filename) 
+
+        file_line_count = file_lines_count(filename)
         start_time = time.ticks_ms()
         f = open(filename, 'r')
-        i=0
+        i = 0
         for line in f:
-            i+=1
+            i += 1
             line_json = {
                 "hashid": hashid,
                 "line": '{}'.format(line.strip()),
@@ -113,15 +113,15 @@ class ErikaMqqt:
             #print("line: {} {}".format(i, json.dumps(line_json)))
             await self.client.publish(self.channel_upload, json.dumps(line_json), qos=1)
             asyncio.sleep(0.05)
-            show_progress(progress=i,max=file_line_count)
+            show_progress(progress=i, max=file_line_count)
         f.close()
         process_time = round((time.ticks_ms() - start_time) / 1000)
-        write_to_screen("Ok. {} in {}s".format(i,process_time), margin=5)
-        
+        write_to_screen("Ok. {} in {}s".format(i, process_time), margin=5)
+
         # send command to send the email
         command_json = {"cmd": "email",
-                        "from":"erika@bla.bla",
-                        "to":"l.sokolov@gmx.de"
+                        "hashid": hashid,
+                        "from": EMAIL_FROM,
+                        "to": EMAIL_TO
                         }
         await self.client.publish(self.channel_upload, json.dumps(command_json), qos=1)
-

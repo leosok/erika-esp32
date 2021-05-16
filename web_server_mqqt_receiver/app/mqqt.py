@@ -2,14 +2,16 @@ import paho.mqtt.client as mqtt
 import json
 import logging
 from app.model import Textdata
+from app.send_email import send_email
 from peewee import IntegrityError
+from datetime import datetime
 
 logging.basicConfig()
 logger = logging.getLogger("erika_mqqt_bridge")
 logger.setLevel(logging.DEBUG)
 
 
-def start_mqqt(mqqt_server, mqqt_user, mqqt_password, subscribe_to="erika/1/print", qos=1):
+def start_mqqt(mqqt_server, mqqt_user, mqqt_password, subscribe_to="erika/upload", qos=1):
     # If you want to use a specific client id, use
     # mqttc = mqtt.Client("client-id")
     # but note that the client id must be unique on the broker. Leaving the client
@@ -31,6 +33,14 @@ def on_message(mqttc, obj, msg):
   try:
     data = json.loads(msg.payload)
     logger.info(data)
+    
+    # Execute Commands from Erika
+    if "cmd" in data:
+      if data["cmd"] == "email":
+        subject = f'Erika Text {datetime.now().strftime("%d.%m.%Y")}'
+        content = Textdata.as_fulltext(data['hashid'])
+        return send_email(data['from'],data['to'],subject, content)
+
     try:
       Textdata.create(content=data['line'], hashid=data['hashid'], line_number=data['lnum'])
     except IntegrityError:
