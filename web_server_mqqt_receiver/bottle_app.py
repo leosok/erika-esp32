@@ -42,19 +42,39 @@ def single(hashid):
 
 @route('/incoming', method='POST')
 def incoming_webhook():
-    logger.info("request:")
-    logger.info(request.body.read())
+    
+    # Create a german date to print
+    import locale
+    from email.utils import parsedate_to_datetime
+    mail_date = parsedate_to_datetime(request.json['headers']['date'])
+    locale.setlocale(locale.LC_TIME, "de_DE")
+    print_date = mail_date.strftime("%A, %d %b %Y %H:%M")
 
 
-    #erika/1/print
+    print_template = [
+        "\n\n",
+        "--------  EMAIL -------\n",
+        "{}".format(print_date),
+        "Von: {}".format(request.json['headers']['from']),
+        "Btr.: {}".format(request.json['headers']['subject']),
+        " ",
+        "{}".format(request.json['plain'])        
+    ]
 
-
+    print_str = '\n'.join(print_template)
+    erika_mqqt.mqttc.publish('erika/1/print',print_str)
+    
     return "ok"
 
 
 initialize_models()
 db.close()
 application = default_app()
+from app.mqqt import ErikaMqqt
+from secrets import MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD
+erika_mqqt = ErikaMqqt(MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD)
+
+#erika_mqqt.run_forever()
 
 if __name__ == "__main__":
     run(host='localhost', port=8080, debug=True, reloader=True)
