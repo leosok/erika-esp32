@@ -6,4 +6,6 @@ import app.mqqt
 # Create/Open database
 app.model.initialize_models()
 
-app.mqqt.start_mqqt(MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD, subscribe_to="erika/upload")
+erika_mqqt = app.mqqt.ErikaMqqt(MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD)
+erika_mqqt.subscribe(subscribe_to="erika/upload", qos=1)
+erika_mqqt.run_forever()
