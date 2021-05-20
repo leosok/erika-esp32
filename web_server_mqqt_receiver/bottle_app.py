@@ -43,6 +43,10 @@ def single(hashid):
 @route('/incoming', method='POST')
 def incoming_webhook():
     
+    from app.mqqt import ErikaMqqt
+    from secrets import MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD
+    erika_mqqt = ErikaMqqt(MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD)
+
     # Create a german date to print
     import locale
     from email.utils import parsedate_to_datetime
@@ -70,11 +74,6 @@ def incoming_webhook():
 initialize_models()
 db.close()
 application = default_app()
-from app.mqqt import ErikaMqqt
-from secrets import MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD
-erika_mqqt = ErikaMqqt(MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD)
-
-#erika_mqqt.run_forever()
 
 if __name__ == "__main__":
     run(host='localhost', port=8080, debug=True, reloader=True)
