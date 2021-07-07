@@ -20,14 +20,28 @@ class ErikaMqqt:
     # id parameter empty will generate a random id for you.
     self.mqttc = mqtt.Client()
     self.mqttc.on_message = self.on_message
-    #mqttc.on_connect = on_connect
-    #mqttc.on_publish = on_publish
-    #mqttc.on_subscribe = on_subscribe
+    # mqttc.on_publish = on_publish
+    self.mqttc.on_subscribe = self.on_subscribe
     # Uncomment to enable debug messages
-    # mqttc.on_log = on_log
+    # self.mqttc.on_log = self.on_log
     self.mqttc.username_pw_set(mqqt_user, password=mqqt_password)
     self.mqttc.connect(mqqt_server, 1883, 60)
+    
+    # This will make mqttc re-subscribe after re-connect
+    self.mqttc.on_connect =self.on_connect
+    self.mqttc.on_disconnect =self.on_disconnect
 
+  def on_connect(self, mqttc, userdata, flags, rc, properties=None):
+    print("connecting to MQQT....")
+    print("(Re-)subscribing")
+    self.subscribe()
+
+  def on_subscribe(self, mqqtc, userdata, mid, rc):
+    print("Subscribing....")
+    if rc != 0:
+      print(f"Could not subscribe: '{str(mid)}'")
+    else:
+      print(f"Subscription '{str(mid)}' worked!")
 
   def subscribe(self, subscribe_to="erika/upload", qos=1):
     self.mqttc.subscribe(subscribe_to, qos)
@@ -58,6 +72,11 @@ class ErikaMqqt:
       
   def on_log(self, mqttc, obj, level, string):
       print(string)
+
+  def on_disconnect(self, mqttc, userdata, rc):
+      print(f"on_disconnect: {rc}")
+      if rc != 0:
+          print("Unexpected MQTT disconnection. Will auto-reconnect")
 
 
 # def on_publish(mqttc, obj, mid):
