@@ -128,10 +128,13 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# vscode
+web_server_mqqt_receiver/.vscode/
+.vscode/
+
 # Tokens
 web_client_mqqt/mqqt_config.js
 esp32/secrets.py
-.vscode/arduino.json
 esp32/saved_lines.txt
 
 web_server_mqqt_receiver/pyvenv.cfg
@@ -142,3 +145,4 @@ web_server_mqqt_receiver/secrets.py
 web_server_mqqt_receiver/diary.py
 web_server_mqqt_receiver/Include/
 web_server_mqqt_receiver/share/
+
