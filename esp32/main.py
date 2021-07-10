@@ -41,7 +41,7 @@ async def main():
     # Schedule three calls *concurrently*:
     await asyncio.gather(
        erika.receiver(),
-       erika.printer(erika.queue),
+       erika.printer(erika.queue_print),
        erika_mqqt.start_mqqt_connection(),
        wlan_strength(1)
     )
@@ -50,5 +50,8 @@ screen.starting()
 do_connect()
 set_time()
 
+# loop=asyncio.get_event_loop(); 
+# loop.create_task(erika.ask("Willst du ins Bett?"))
+
 asyncio.run(main())
-#loop=asyncio.get_event_loop(); loop.create_task(erika_mqqt.upload_text_file("saved_lines copy.txt")); loop.run_forever()
+

@@ -1,5 +1,5 @@
 from utils.misc import file_lines_count
-from mqtt_as import MQTTClient, config
+from lib.mqtt_as import MQTTClient, config
 import uasyncio as asyncio
 from utils.screen_utils import write_to_screen, show_progress
 import time
@@ -58,13 +58,13 @@ class ErikaMqqt:
             asyncio.create_task(self.start_mqqt_connection())
             return
 
-    async def send_to_printer(self, text):
-        await self.set_status(self.ERIKA_STATE_PRINTING)
-        await self.erika.queue.put(text)
-        await asyncio.sleep_ms(100)
-        while self.erika.is_printing:
-            await asyncio.sleep_ms(100)
-        await self.set_status(self.ERIKA_STATE_LISTENING)
+    # async def send_to_printer(self, text):
+    #     await self.set_status(self.ERIKA_STATE_PRINTING)
+    #     await self.erika.queue.put(text)
+    #     await asyncio.sleep_ms(100)
+    #     while self.erika.is_printing:
+    #         await asyncio.sleep_ms(100)
+    #     await self.set_status(self.ERIKA_STATE_LISTENING)
 
     def sub_cb(self, topic, msg, retained):
         msg_str = str(msg, 'UTF-8')
@@ -74,7 +74,7 @@ class ErikaMqqt:
             write_to_screen(msg_str)
         if "print" in topic:
             print("Got something to print...")
-            asyncio.create_task(self.send_to_printer(msg_str))
+            asyncio.create_task(self.erika.print_text(msg_str))
             # set status needs to be changed. Needs to be set in printer and checked by mqqt in some loop
 
     # Changes the status of this Erika on the erika/n/status channel

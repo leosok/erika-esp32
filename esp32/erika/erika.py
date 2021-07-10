@@ -6,7 +6,7 @@ from machine import UART, Pin
 from erika import erica_encoder_decoder
 import binascii
 import uasyncio as asyncio
-from primitives.queue import Queue
+from lib.primitives.queue import Queue
 from utils.screen_utils import write_to_screen
 from utils.umailgun import Mailgun, CONFIG_MY_EMAIL, MAILGUN_API_KEY, MAILGUN_API_URL
 
@@ -42,10 +42,13 @@ class Erika:
 
         self.sender = self.Sender(self)
         self.action_controller = self.ActionController(self)
-        # Queue for the printer
-        self.queue = Queue()
+        # Queues for the printer + promts
+        self.queue_print = Queue()
+        self.queue_prompt = Queue()
+
         # will be used for MQQT-Status
-        self.is_printing=False
+        self.is_printing = False
+        self.is_prompting = False
 
         self.keyboard_echo = True
         # this is a way to upload files:
@@ -70,7 +73,11 @@ class Erika:
                 current_line = self.input_line_buffer
                 print(current_line)
                 self.input_lines_buffer.append(current_line)
-                if self.action_controller.check_for_action(current_line) == False:
+                # if we are waiting for a response from a user-promt
+                if self.is_prompting:
+                    await self.queue_prompt.put(current_line)
+                # check if this is an "action"
+                elif self.action_controller.check_for_action(current_line) == False:
                     self._save_lines_to_file(current_line)
                 self.input_line_buffer = ''
             elif decoded_char == 'DEL':
@@ -85,16 +92,16 @@ class Erika:
             else:
                 self.input_line_buffer += decoded_char
 
-    async def printer(self, queue, linefeed=True):
+    async def printer(self, queue):
         while True:
-            text = await queue.get()  # Blocks until data is ready
-            print('Printer found text in Queue')
+            text, linefeed = await queue.get()  # Blocks until data is ready
+            print('Printer found text in Queue. Linefeed is {}'.format(linefeed))
             self.is_printing = True
             swriter = asyncio.StreamWriter(self.uart, {})
-            lines = self.string_to_lines(text)  
-            print(lines)          
+            lines = self.string_to_lines(text=text, linefeed=linefeed)  
+            # print(lines)          
             for line in lines:
-                print(line)
+                # print(line)
                 for char in line:
                     sent = False
                     while not sent:
@@ -125,27 +132,37 @@ class Erika:
         print("uart started")
         return uart
 
-    def reader(self):
-        pass
+    async def print_text(self, text, linefeed=True):
+        '''
+        Prints a text on the Erika
+        '''
+        await self.queue_print.put((text, linefeed))
+        await asyncio.sleep_ms(100)
+        while self.is_printing:
+            await asyncio.sleep_ms(100)
+        return True
 
-    def read_string(self):
-        tmp_str = ''
-        while self.uart.any() > 0:
-            tmp_bytes = self.uart.read(1)
-            decoded_char = self.ddr_2_ascii.decode(tmp_bytes)
-            tmp_str += decoded_char
-        # print(tmp_str)
-        return tmp_str
+    async def ask(self, promt):
+        promt_txt = promt + ': '
+        await self.print_text(promt_txt, linefeed=False)
+        print("Waiting for User-Input")
+        self.is_prompting = True
+        user_answer = await self.queue_prompt.get()
+        self.is_prompting = False
+        print("User answered: {}".format(user_answer))
+        return user_answer
 
-    
-
-    def string_to_lines(self, text, max_length=DEFAULT_LINE_LENGTH):
+    def string_to_lines(self, text, max_length=DEFAULT_LINE_LENGTH, linefeed=True):
         '''
         Returns an array of lines with a max_length of DEFAULT_LINE_LENGTH
         All newlines from the original lines are used
         in case a line is to long, an extra newline is inserted
         '''
         newline = '\n'
+        if linefeed:
+            last_char = newline
+        else:
+            last_char = ''
         all_lines = text.split(newline)
         lines = []
         for aline in all_lines:
@@ -154,7 +171,7 @@ class Erika:
 
             # If the text is less than a line, return it
             if len(text) <= max_length:
-                lines.append(text + newline)
+                lines.append(text + last_char)
             else:
                 # else split to lines
                 for word in words:
@@ -166,7 +183,7 @@ class Erika:
                         tmp_line = word
 
                 # for the last words
-                lines.append(tmp_line.strip() + newline)
+                lines.append(tmp_line.strip() + last_char)
         return lines    
 
 
