@@ -142,7 +142,10 @@ class Erika:
             await asyncio.sleep_ms(100)
         return True
 
-    async def ask(self, promt):
+    async def ask(self, promt:str) -> str:
+        """
+        Prints a prompt and returns the answer from the user as string
+        """
         promt_txt = promt + ': '
         await self.print_text(promt_txt, linefeed=False)
         print("Waiting for User-Input")

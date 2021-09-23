@@ -19,6 +19,10 @@ def set_time():
         print("Could not set time.")
 
 erika = Erika()
+
+# Here we have to check, if a configuration is present.
+# If not, we need ot gather data from the user.
+
 erika_mqqt = ErikaMqqt(erika=erika)
 erika.mqqt_client = erika_mqqt
 
