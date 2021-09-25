@@ -142,18 +142,35 @@ class Erika:
             await asyncio.sleep_ms(100)
         return True
 
-    async def ask(self, promt:str) -> str:
+    async def ask(self, promt:str, ask_bool:bool = False) -> str:
         """
         Prints a prompt and returns the answer from the user as string
         """
-        promt_txt = promt + ': '
+        positives = ['y','j','ja','ok','yes']
+        negatives = ['n','nein','no']
+
+        bool_promt_txt = ' (y/n) ' if ask_bool else ''
+        promt_txt = promt + bool_promt_txt + ': '
         await self.print_text(promt_txt, linefeed=False)
         print("Waiting for User-Input")
         self.is_prompting = True
         user_answer = await self.queue_prompt.get()
         self.is_prompting = False
         print("User answered: {}".format(user_answer))
-        return user_answer
+        if not ask_bool:
+            return user_answer
+        else:
+            is_positiv = user_answer.lower() in positives
+            is_negativ = user_answer.lower() in negatives
+            if is_positiv:
+                print("bool-answer positive")
+                return True
+            elif is_negativ:
+                print("bool-answer negative")
+                return False
+            else:
+                print("Bool-Question was answered with {}".format(user_answer))
+                return await self.ask(promt="Fehler. Bitte mit 'Ja' oder 'Nein' antworten", ask_bool=True)
 
     def string_to_lines(self, text, max_length=DEFAULT_LINE_LENGTH, linefeed=True):
         '''
