@@ -5,7 +5,7 @@ from utils.screen_utils import write_to_screen, show_progress
 import time
 from machine import Timer
 from erika import Erika
-from secrets import MQQT_PASSWORD, MQQT_SERVER, MQQT_USERNAME, WLAN_SSID, WLAN_PASSWORD, EMAIL_FROM, EMAIL_TO
+from config import MqqtConfig, UserConfig
 
 
 class ErikaMqqt:
@@ -38,6 +38,7 @@ class ErikaMqqt:
         config['connect_coro'] = self.conn_han
         config['keepalive'] = 120
 
+        
         config['server'] = MQQT_SERVER
         config['user'] = MQQT_USERNAME
         config['password'] = MQQT_PASSWORD
