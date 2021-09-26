@@ -38,12 +38,14 @@ class ErikaMqqt:
         config['connect_coro'] = self.conn_han
         config['keepalive'] = 120
 
-        
-        config['server'] = MQQT_SERVER
-        config['user'] = MQQT_USERNAME
-        config['password'] = MQQT_PASSWORD
-        config['ssid'] = WLAN_SSID
-        config['wifi_pw'] = WLAN_PASSWORD
+        mqqt_config = MqqtConfig()
+        user_config = UserConfig()
+
+        config['server'] = mqqt_config.MQQT_SERVER
+        config['user'] = mqqt_config.MQQT_USERNAME
+        config['password'] = mqqt_config.MQQT_PASSWORD
+        config['ssid'] = user_config.wlan_ssid
+        config['wifi_pw'] = user_config.wlan_password
 
         config['client_id'] = self.mqqt_id
         # config['clean'] = False
@@ -119,10 +121,11 @@ class ErikaMqqt:
         process_time = round((time.ticks_ms() - start_time) / 1000)
         write_to_screen("Ok. {} in {}s".format(i, process_time), margin=5)
 
+        EMAIL_FROM='electronic@erika-cloud.de'
         # send command to send the email
         command_json = {"cmd": "email",
                         "hashid": hashid,
                         "from": EMAIL_FROM,
-                        "to": EMAIL_TO
+                        "to": UserConfig().email_adress
                         }
         await self.client.publish(self.channel_upload, json.dumps(command_json), qos=1)

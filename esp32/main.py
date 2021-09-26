@@ -8,7 +8,7 @@ from erika import Erika
 import uasyncio as asyncio
 import network
 
-from utils.network_utils import do_connect
+from utils.network_utils import do_connect, scan_wlan
 import utils.screen_utils as screen
 from config import UserConfig
 
@@ -30,17 +30,23 @@ erika_mqqt = ErikaMqqt(erika=erika)
 erika.mqqt_client = erika_mqqt
 user_config = UserConfig()
 
-if user_config:
+scan_wlan()
+
+if user_config.load():
     do_connect(user_config.wlan_ssid, user_config.wlan_password)
+    set_time()
 else:
     asyncio.run(user_config.get_config_io(erika))
+    user_config.load()
+
+
 
 async def wlan_strength(user_config:UserConfig, max=5):
     while True:
         ip = do_connect(user_config.wlan_ssid, user_config.wlan_password)
         wlan = network.WLAN()
         strength = wlan.status('rssi')
-        screen.network(ip,strength)
+       # screen.network(ip,strength)
         await asyncio.sleep(max)
 
 
@@ -50,16 +56,11 @@ async def main():
     await asyncio.gather(
        erika.receiver(),
        erika.printer(erika.queue_print),
-       #erika_mqqt.start_mqqt_connection(),
-       wlan_strength(1),
+       erika_mqqt.start_mqqt_connection(),
+       #wlan_strength(user_config),
        #start_first_config(erika)
     )
 
 screen.starting()
-
-
-set_time()
-
-
 asyncio.run(main())
 

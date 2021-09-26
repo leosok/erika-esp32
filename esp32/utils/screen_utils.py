@@ -1,6 +1,6 @@
 # screen_utils.py
 
-from boot import do_connect
+from utils.network_utils import do_connect
 from machine import SoftI2C, Pin
 import ssd1306
 import time
@@ -23,17 +23,17 @@ def reset(lines=4):
   # oled.show()
   return oled
 
-def network(ip=False, strength=False):
-  reset()
-  oled.text('Erika', 45, 5)
-  if ip:
-    oled.text(ip,0,20)
-  else:
-    oled.text(do_connect(),0,20)
-  if strength:
-    oled.text(str(strength), 0, 30)
-  oled.text(str(round(time.ticks_ms()/1000)), 0, 40)
-  oled.show()
+# def network(ip=False, strength=False):
+#   reset()
+#   oled.text('Erika', 45, 5)
+#   if ip:
+#     oled.text(ip,0,20)
+#   else:
+#     oled.text(do_connect(),0,20)
+#   if strength:
+#     oled.text(str(strength), 0, 30)
+#   oled.text(str(round(time.ticks_ms()/1000)), 0, 40)
+#   oled.show()
 
 def starting():
   oled = inizilize()

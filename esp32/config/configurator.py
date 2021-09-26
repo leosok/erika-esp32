@@ -40,6 +40,7 @@ class UserConfig:
         self.wlan_password = None
         self.wlan_ssid = None
         self.erika_name = None
+        self.email_adress = None
         
         self.load()
 
@@ -63,22 +64,34 @@ class UserConfig:
                 data = json.load(f)
             for k,v in data.items():
                 setattr(self,k,v)
+            return True
         except:
             return False
 
+
+    
+
     async def get_config_io(self, erika:Erika):
 
-        self.erika_name = await erika.ask("Wie heißt deine Erika?", ask_bool=True)
+        self.erika_name = await erika.ask("Wie heißt deine Erika?")
+        self.email_adress = await erika.ask("Wie lautet deine Email-Adresse?")
+        
+        # Wlan
         await erika.print_text("--- Wlan Configuration ---")
         await erika.print_text("Verfügbare Netzwerke:")
+
         wlans = scan_wlan()
         
-        for wlan, idx in enumerate(wlans, start=1):
+        for idx, wlan in enumerate(wlans, start=1):
+            print("->" + str(wlan))
             ssid, strength = wlan
-            await erika.print_text("{}: '{}' {}".format(idx, ssid, get_wlan_strength(strength) * ">")
+            await erika.print_text("{}: {:4s} {}".format(idx, get_wlan_strength(strength) * ")", ssid))
+            print( "{}: {:3s} {}".format(idx, get_wlan_strength(strength) * ")", ssid))
 
-        await erika.print_text("---")
-        self.wlan_ssid = await erika.ask("Bitte Nummer des Netwerks eingeben")
+        erika.sender._newline
+        wlan_number_str = await erika.ask("Bitte Nummer des Netwerks eingeben")
+        wlan_number_int = int(wlan_number_str)
+        self.wlan_ssid = wlans[wlan_number_int-1][0] # last 0 is for the tuple
         self.wlan_password = await erika.ask("Bitte Passwort eingeben")
         # Try to connect for 5 sec
         if do_connect(self.wlan_ssid, self.wlan_password, timeout_sec=5):
@@ -86,6 +99,7 @@ class UserConfig:
             self.save()
         else:
             await erika.print_text("Verbindungsfehler - Konnte keine Verbindung mit '{}' herstellen.".format(self.wlan_ssid))
+            self.wlan_password = await erika.ask("Bitte Passwort wiederholen")
 
 
 

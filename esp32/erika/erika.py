@@ -8,7 +8,7 @@ import binascii
 import uasyncio as asyncio
 from lib.primitives.queue import Queue
 from utils.screen_utils import write_to_screen
-from utils.umailgun import Mailgun, CONFIG_MY_EMAIL, MAILGUN_API_KEY, MAILGUN_API_URL
+# from utils.umailgun import Mailgun, CONFIG_MY_EMAIL, MAILGUN_API_KEY, MAILGUN_API_URL
 
 # For more stuff see:
 # https://github.com/Chaostreff-Potsdam/erika3004/blob/5886ae8af26bc73716dcc848c19a5fa46c7c59c4/erika/erika.py

@@ -6,14 +6,16 @@ def scan_wlan(max=5):
     Scans Wlans
     Returns: Array of Tuples (ssid, strength)
     """
-    wlan = network.WLAN()
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
     wlan.disconnect()
     networks_found = wlan.scan()[:max]
     networks_array = []
     for n in networks_found:
-        ssid = n[0]
+        ssid_byte_str = n[0]
+        ssid_str = ssid_byte_str.decode('utf-8').strip("'")
         strength = n[3]
-        networks_array.append((ssid, strength))
+        networks_array.append((ssid_str, strength))
     print(networks_array)
     return networks_array
 
@@ -35,8 +37,10 @@ def do_connect(wlan_ssid, wlan_password, timeout_sec=5):
             pass
     ip_adress = sta_if.ifconfig()[0]
     if not ip_adress == '0.0.0.0':
+        print("OK: connected to network '{}' with password '{}'".format(wlan_ssid, wlan_password))
         return ip_adress
     else:
+        print("ERROR: connecting to network '{}' with password '{}'".format(wlan_ssid, wlan_password))
         return False 
 
 
@@ -44,9 +48,11 @@ def get_wlan_strength(strength):
     """
     Returns Wlan-Strength from 1 to 3 (strongest)
     """
+    # print("strength: {}".format(strength))
+    strength = int(strength)
     if strength >= -60:
         return 3
-    if strength >= -67:
+    elif strength >= -67:
         return 2
-    if strength >= -70:
+    else:
         return 1
