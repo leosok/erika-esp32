@@ -6,6 +6,9 @@ import time
 from machine import Timer
 from erika import Erika
 from config import MqqtConfig, UserConfig
+from utils.misc import status_led
+import ubinascii
+import machine
 
 
 class ErikaMqqt:
@@ -14,6 +17,9 @@ class ErikaMqqt:
     ERIKA_STATE_PRINTING = b'2'
 
     def __init__(self, erika, mqqt_id='erika', erika_id='1'):
+
+        self.uuid = ubinascii.hexlify(machine.unique_id())
+
         self.channel_status = b'{client_id}/{erika_id}/status'.format(client_id=mqqt_id,
                                                                       erika_id=erika_id)  # erika/1/status
         self.channel_print = b'{client_id}/{erika_id}/print'.format(client_id=mqqt_id,
@@ -22,7 +28,7 @@ class ErikaMqqt:
         self.channel_upload = b'{client_id}/upload'.format(client_id=mqqt_id)
 
         self.erika = erika
-        self.mqqt_id = mqqt_id
+        self.mqqt_id = b'{}_{}'.format(mqqt_id, self.uuid)
         self.erika_id = erika_id
         self.client = None
 
@@ -88,6 +94,7 @@ class ErikaMqqt:
 
     async def wifi_han(self, state):
         print('Wifi is ', 'up' if state else 'down')
+        status_led(status=state)
         await asyncio.sleep_ms(30)
 
     # If you connect with clean_session True, must re-subscribe (MQTT spec 3.1.2.4)
