@@ -6,3 +6,12 @@ def file_lines_count(filename):
         for i, l in enumerate(f):
             pass
     return i + 1
+
+def status_led(status:bool, pin=25):
+    """
+    Activates a Status-LED on the Heltec-Board
+    """
+    from machine import Pin
+    OnboardLED = Pin(pin, Pin.OUT)
+    OnboardLED.value(status)
+    

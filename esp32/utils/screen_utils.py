@@ -1,6 +1,5 @@
 # screen_utils.py
 
-from utils.network_utils import do_connect
 from machine import SoftI2C, Pin
 import ssd1306
 import time
@@ -23,17 +22,15 @@ def reset(lines=4):
   # oled.show()
   return oled
 
-# def network(ip=False, strength=False):
-#   reset()
-#   oled.text('Erika', 45, 5)
-#   if ip:
-#     oled.text(ip,0,20)
-#   else:
-#     oled.text(do_connect(),0,20)
-#   if strength:
-#     oled.text(str(strength), 0, 30)
-#   oled.text(str(round(time.ticks_ms()/1000)), 0, 40)
-#   oled.show()
+def network(ip=False, strength=False):
+  reset()
+  oled.text('Erika', 45, 5)
+  if ip:
+    oled.text(ip,0,20)
+  if strength:
+    oled.text(str(strength), 0, 30)
+  oled.text(str(round(time.ticks_ms()/1000)), 0, 40)
+  oled.show()
 
 def starting():
   oled = inizilize()
@@ -42,15 +39,20 @@ def starting():
   oled.show()
   #oled.text('MicroPython', 20, 20)
 
-def write_to_screen(text, margin=20):
+def write_to_screen(text, margin=20, line=5, centered=False):
+  # Screen is 16 char wide, each char 8 px
   print("Screen: " + text)
-  reset(5)
-  #oled.fill_rect(0, 50, oled.width, oled.height-50, 0)
-  oled.text(text, margin, 50)
+  oled.fill_rect(0, line*10, oled.width, 10, 0)
+  if centered:
+      empty_chars = 16-len(text)
+      empty_width = round(empty_chars * 8 / 2)
+      margin = empty_width 
+  oled.text(text, margin, line*10)
+  
   oled.show()
  
-def show_progress(progress=0, max=100):
-  reset(5)
+def show_progress(progress=0, max=100, line=5):
+  oled.fill_rect(0, line*10, oled.width, 10, 0)
   margin = 10
   current_width = round((oled.width-margin) / max * progress)
   oled.rect(margin, 50, oled.width-margin, 5, 50) # outer rect

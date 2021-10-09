@@ -26,6 +26,7 @@ def do_connect(wlan_ssid, wlan_password, timeout_sec=5):
     Returns: ip_adresse(str) if successful or False
     """
     sta_if = network.WLAN(network.STA_IF)
+    ip_adress = sta_if.ifconfig()[0]
     if not sta_if.isconnected():
         print('connecting to network...')
         sta_if.active(True)
@@ -34,14 +35,17 @@ def do_connect(wlan_ssid, wlan_password, timeout_sec=5):
         t = time.ticks_ms()
         while not sta_if.isconnected() and time.ticks_diff(time.ticks_ms(), t) < timeout_sec * 1000:
             # wait for 5 seconds
-            pass
-    ip_adress = sta_if.ifconfig()[0]
-    if not ip_adress == '0.0.0.0':
-        print("OK: connected to network '{}' with password '{}'".format(wlan_ssid, wlan_password))
-        return ip_adress
+            time.sleep_ms(500)
+        ip_adress = sta_if.ifconfig()[0]
+        if not ip_adress == '0.0.0.0':
+            print("OK: connected to network '{}' with password '{}'".format(wlan_ssid, wlan_password))
+            return ip_adress
+        else:
+            print("ERROR: connecting to network '{}' with password '{}'".format(wlan_ssid, wlan_password))
+            return False 
     else:
-        print("ERROR: connecting to network '{}' with password '{}'".format(wlan_ssid, wlan_password))
-        return False 
+        return ip_adress
+    
 
 
 def get_wlan_strength(strength):

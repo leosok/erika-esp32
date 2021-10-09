@@ -152,7 +152,7 @@ class Erika:
         bool_promt_txt = ' (y/n) ' if ask_bool else ''
         promt_txt = promt + bool_promt_txt + ': '
         await self.print_text(promt_txt, linefeed=False)
-        print("Waiting for User-Input")
+        print("Waiting for User-Input: {}".format(promt_txt))
         self.is_prompting = True
         user_answer = await self.queue_prompt.get()
         self.is_prompting = False
@@ -221,7 +221,7 @@ class Erika:
 
     class ActionController:
 
-        def __init__(self, erika=None):
+        def __init__(self, erika:Erika=None):
             self.erika = erika
             self.action_promt_string =erika.ACTION_PROMT_STRING
         
@@ -275,8 +275,8 @@ class Erika:
 
         async def hallo(self):
             '''Prints a "hello"'''
-            time.sleep(1)
-            await self.erika.queue.put('Hallo, Du!')
+            asyncio.sleep(1)
+            await self.erika.print_text('Hallo, Du!')
 
         async def send(self):
             '''Send as Mail'''
@@ -284,11 +284,17 @@ class Erika:
             await self.erika.mqqt_client.upload_text_file(self.erika.TEMP_LINES_FILE)
             self.erika.input_lines_buffer = []
 
-        async def clear_lines(self):
+        async def clear(self):
             '''resets the temp file'''
             # this last line has the ;;:save command
             open(self.erika.TEMP_LINES_FILE, "w").close()
             write_to_screen("Tempfile clear.")
+
+        async def reset(self):
+            '''deletes User-config of this Erika'''
+            from config.configurator import UserConfig
+            result = UserConfig().delete()
+            write_to_screen("Reset: {}".format(result))
 
 
         def help(self):

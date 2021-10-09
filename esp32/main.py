@@ -7,12 +7,35 @@ import ntptime
 from erika import Erika
 import uasyncio as asyncio
 import network
+import machine
 
 from utils.network_utils import do_connect, scan_wlan
 import utils.screen_utils as screen
 from config import UserConfig
+from utils.misc import status_led
 
+async def wlan_strength(user_config:UserConfig, max=5):
+    while True:
+        ip = do_connect(user_config.wlan_ssid, user_config.wlan_password)
+        screen.network(ip)
+        await asyncio.sleep(max)
+       
+async def start_all(erika:Erika, mqqt:ErikaMqqt):
+    # Schedule three calls *concurrently*:
+    await asyncio.gather(
+       erika.receiver(),
+       erika.printer(erika.queue_print),
+       erika_mqqt.start_mqqt_connection(),
+       wlan_strength(user_config)
+    )
 
+async def start_config(erika:Erika):
+    # Schedule three calls *concurrently*:
+    await asyncio.gather(
+       erika.receiver(),
+       erika.printer(erika.queue_print),
+       UserConfig().get_config_io(erika)
+    )
 
 def set_time():
     try:
@@ -21,46 +44,33 @@ def set_time():
     except:
         print("Could not set time.")
 
+
+###############################
+#  ***      START       ***   #
+###############################
+
+status_led(False)
+screen.starting()
+
 erika = Erika()
+user_config = UserConfig()
 
 # Here we have to check, if a configuration is present.
 # If not, we need ot gather data from the user.
 
-erika_mqqt = ErikaMqqt(erika=erika)
-erika.mqqt_client = erika_mqqt
-user_config = UserConfig()
-
-scan_wlan()
-
 if user_config.load():
     do_connect(user_config.wlan_ssid, user_config.wlan_password)
     set_time()
+    erika_mqqt = ErikaMqqt(erika=erika)
+    erika.mqqt_client = erika_mqqt
+    asyncio.run(
+        start_all(erika=erika, mqqt=erika_mqqt)
+        )
 else:
-    asyncio.run(user_config.get_config_io(erika))
-    user_config.load()
-
-
-
-async def wlan_strength(user_config:UserConfig, max=5):
-    while True:
-        ip = do_connect(user_config.wlan_ssid, user_config.wlan_password)
-        wlan = network.WLAN()
-        strength = wlan.status('rssi')
-       # screen.network(ip,strength)
-        await asyncio.sleep(max)
-
-
-#from config.first_config_io import start_first_config        
-async def main():
-    # Schedule three calls *concurrently*:
-    await asyncio.gather(
-       erika.receiver(),
-       erika.printer(erika.queue_print),
-       erika_mqqt.start_mqqt_connection(),
-       #wlan_strength(user_config),
-       #start_first_config(erika)
-    )
-
-screen.starting()
-asyncio.run(main())
-
+    print("No Config found. Asking User for it...")
+    asyncio.run(
+        start_config(erika=erika)
+        )
+    print("Restarting Erika...")
+    machine.reset()
+    #asyncio.run(main(erika=erika, mqqt=erika_mqqt))
