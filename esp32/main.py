@@ -55,7 +55,7 @@ screen.starting()
 erika = Erika()
 user_config = UserConfig()
 
-# Here we have to check, if a configuration is present.
+# Here we have to xcheck, if a configuration is present.
 # If not, we need ot gather data from the user.
 
 if user_config.load():

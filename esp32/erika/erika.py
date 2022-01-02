@@ -22,7 +22,7 @@ class Erika:
     CTS_PIN = 21
     TEMP_LINES_FILE = "saved_lines.txt"
     # Using an Array for ACTION_PROMT_STRING, because Char does not work with REL
-    ACTION_PROMT_CHARS = ["REL","REL","REL"]
+    ACTION_PROMT_CHARS = ["REL", "REL", "REL"]
     ACTION_PROMT_STRING = ''.join(ACTION_PROMT_CHARS)
 
     def __init__(self):
@@ -61,15 +61,14 @@ class Erika:
     #         print('Should now print (print_test)')
     #         await queue.put(" Hallo{}. ".format(counter))
 
-    
     async def receiver(self):
         sreader = asyncio.StreamReader(self.uart)
         while True:
             tmp_bytes = await sreader.read(1)
-            decoded_char = self.ddr_2_ascii.decode(tmp_bytes) 
-            # print(self.ACTION_PROMT_STRING[-1:][0])   
-            # print(decoded_char)        
-            if decoded_char=='\n':
+            decoded_char = self.ddr_2_ascii.decode(tmp_bytes)
+            # print(self.ACTION_PROMT_STRING[-1:][0])
+            # print(decoded_char)
+            if decoded_char == '\n':
                 current_line = self.input_line_buffer
                 print(current_line)
                 self.input_lines_buffer.append(current_line)
@@ -86,7 +85,8 @@ class Erika:
             elif decoded_char == self.ACTION_PROMT_CHARS[-1:][0]:
                 self.input_line_buffer += decoded_char
                 # If we hit the last Char of ACTION_PROMT_STRING check if the rest was typed
-                last_chars = self.input_line_buffer[-len(self.ACTION_PROMT_STRING):]
+                last_chars = self.input_line_buffer[-len(
+                    self.ACTION_PROMT_STRING):]
                 if last_chars == self.ACTION_PROMT_STRING:
                     self.action_controller.start_action_promt()
             else:
@@ -98,8 +98,8 @@ class Erika:
             print('Printer found text in Queue. Linefeed is {}'.format(linefeed))
             self.is_printing = True
             swriter = asyncio.StreamWriter(self.uart, {})
-            lines = self.string_to_lines(text=text, linefeed=linefeed)  
-            # print(lines)          
+            lines = self.string_to_lines(text=text, linefeed=linefeed)
+            # print(lines)
             for line in lines:
                 # print(line)
                 for char in line:
@@ -124,7 +124,6 @@ class Erika:
 
             self.is_printing = False
             print('printer done for now')
-            
 
     def start_uart(self, rx=5, tx=17, baud=1200):
         uart = UART(2, baud)
@@ -142,12 +141,12 @@ class Erika:
             await asyncio.sleep_ms(100)
         return True
 
-    async def ask(self, promt:str, ask_bool:bool = False) -> str:
+    async def ask(self, promt: str, ask_bool: bool = False) -> str:
         """
         Prints a prompt and returns the answer from the user as string
         """
-        positives = ['y','j','ja','ok','yes']
-        negatives = ['n','nein','no']
+        positives = ['y', 'j', 'ja', 'ok', 'yes']
+        negatives = ['n', 'nein', 'no']
 
         bool_promt_txt = ' (y/n) ' if ask_bool else ''
         promt_txt = promt + bool_promt_txt + ': '
@@ -204,8 +203,7 @@ class Erika:
 
                 # for the last words
                 lines.append(tmp_line.strip() + last_char)
-        return lines    
-
+        return lines
 
     def _save_lines_to_file(self, lines, filename=TEMP_LINES_FILE):
         f = open(filename, 'a')
@@ -217,14 +215,12 @@ class Erika:
             f.write(line + '\n')
         f.close()
 
-
-
     class ActionController:
 
-        def __init__(self, erika:Erika=None):
+        def __init__(self, erika: Erika = None):
             self.erika = erika
-            self.action_promt_string =erika.ACTION_PROMT_STRING
-        
+            self.action_promt_string = erika.ACTION_PROMT_STRING
+
         actions = {
             "hallo": "Print Hallo Welt",
             "save": "Mail to User",
@@ -236,28 +232,29 @@ class Erika:
         def start_action_promt(self):
             write_to_screen("Enter Action")
             self.erika.sender.alarm()
-            self.erika.sender.set_keyboard_echo(False)  
+            self.erika.sender.set_keyboard_echo(False)
 
-        
-        def check_for_action(self, input:str):
+        def check_for_action(self, input: str):
             if self.action_promt_string in input:
-                c_string_start = input.rfind(self.action_promt_string) + len(self.action_promt_string)
-                control_string = input[-len(input) + c_string_start:] # the last characters after ACTION_PROMT_STRING
+                c_string_start = input.rfind(
+                    self.action_promt_string) + len(self.action_promt_string)
+                # the last characters after ACTION_PROMT_STRING
+                control_string = input[-len(input) + c_string_start:]
                 # Keyboard was off for "start_action_promt", set it back to original state
-                self.erika.sender.set_keyboard_echo(self.erika.keyboard_echo) 
-                write_to_screen("Action: {}".format(control_string))       
+                self.erika.sender.set_keyboard_echo(self.erika.keyboard_echo)
+                write_to_screen("Action: {}".format(control_string))
                 self.action(control_string)
             else:
                 return False
 
-        def action(self, action_str:str):
-            action_str = action_str.replace(' ','_')
+        def action(self, action_str: str):
+            action_str = action_str.replace(' ', '_')
             print("Action: {}".format(action_str))
             try:
                 loop = asyncio.get_event_loop()
                 if '_on' in action_str.lower():
                     method_name = action_str[:-len('_on')]
-                    method_to_call = getattr(self,method_name)
+                    method_to_call = getattr(self, method_name)
                     method_attr = True
                     loop.create_task(method_to_call(method_attr))
                 elif '_off' in action_str.lower():
@@ -268,8 +265,8 @@ class Erika:
                 else:
                     # TODO: everything to Async!
                     method_to_call = getattr(self, action_str)
-                    loop.create_task(method_to_call())         
-               
+                    loop.create_task(method_to_call())
+
             except AttributeError:
                 print("Could not execute '{}'".format(action_str))
 
@@ -296,17 +293,15 @@ class Erika:
             result = UserConfig().delete()
             write_to_screen("Reset: {}".format(result))
 
-
         def help(self):
             '''Prints all Controll-Functions'''
             print('Printing help...')
-    
+
         async def typing(self, is_active):
             '''Typing echo on/of"'''
             print("Typing is: {}".format(is_active))
             self.erika.sender.set_keyboard_echo(is_active)
             write_to_screen("Now typing is {}".format(is_active))
-
 
     class Sender:
 
@@ -339,7 +334,6 @@ class Erika:
         def _newline(self):
             self._print_raw('77')
 
-
         def set_keyboard_echo(self, is_active=True):
             if is_active:
                 self._print_raw("92")
@@ -348,7 +342,7 @@ class Erika:
                 self._print_raw("91")
                 time.sleep(0.2)
 
-        def _int_to_hex(self,value):
+        def _int_to_hex(self, value):
             hex_str = hex(value)[2:]
             hex_str = "0"+hex_str
             return hex_str[-2:]
