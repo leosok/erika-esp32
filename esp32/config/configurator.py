@@ -4,7 +4,6 @@ from erika import Erika
 from utils.network_utils import scan_wlan, get_wlan_strength, do_connect
 
 
-
 class MqqtConfig:
 
     CONF_FILE = 'config/mqqt_config.json'
@@ -85,11 +84,8 @@ class UserConfig:
         from utils.screen_utils import write_to_screen, show_progress, reset
         
         reset().show()
-        erika.sender.alarm()        
-        write_to_screen("Papier einlegen", line=3, centered=True)
-        write_to_screen(" und ENTER", line=4, centered=True)    
-        await erika.ask(" ") # just wait for the Enter
-
+        await erika.ask_for_paper()
+        
         reset().show()
         write_to_screen("Konfiguration", line=2, centered=True)
         show_progress(0,5)

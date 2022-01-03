@@ -1,4 +1,6 @@
 from utils.timeit import timed_function
+from erika import Erika
+from utils.screen_utils import write_to_screen
 
 @timed_function
 def file_lines_count(filename):
@@ -14,4 +16,3 @@ def status_led(status:bool, pin=25):
     from machine import Pin
     OnboardLED = Pin(pin, Pin.OUT)
     OnboardLED.value(status)
-    

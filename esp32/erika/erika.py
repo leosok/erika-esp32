@@ -16,14 +16,23 @@ from utils.screen_utils import write_to_screen
 
 class Erika:
     DEFAULT_BAUD_RATE = 1200
-    DEFAULT_LINE_LENGTH = 60
     DEFAULT_DELAY = 0.02
     RTS_PIN = 22
     CTS_PIN = 21
     TEMP_LINES_FILE = "saved_lines.txt"
+    
     # Using an Array for ACTION_PROMT_STRING, because Char does not work with REL
     ACTION_PROMT_CHARS = ["REL", "REL", "REL"]
     ACTION_PROMT_STRING = ''.join(ACTION_PROMT_CHARS)
+
+    # Paper
+    DEFAULT_LINE_LENGTH = 60
+    LINES_PER_PAGE = {
+        'LINE_SPACING_10' : 60, 
+        'LINE_SPACING_15': 40, 
+        'LINE_SPACING_20': 30
+        }
+    CHAR_SPACING = 0 # 0 = 10, 1 = 12 on the slider
 
     def __init__(self):
         # line_buffer will be filled until "Return" is hit
@@ -51,6 +60,11 @@ class Erika:
         self.is_prompting = False
 
         self.keyboard_echo = True
+        
+        # page settings
+        self.lines_per_page = self.LINES_PER_PAGE['LINE_SPACING_10']
+        self.line_on_page = 0
+
         # this is a way to upload files:
         self.mqqt_client = None
 
@@ -74,7 +88,13 @@ class Erika:
                 self.input_lines_buffer.append(current_line)
                 # if we are waiting for a response from a user-promt
                 if self.is_prompting:
-                    await self.queue_prompt.put(current_line)
+                    print("promting... current_line is {}".format(current_line))
+                    if not current_line:
+                        print("current_line is emtry")
+                        # This is when waiting for paper
+                        await self.queue_prompt.put("ok")
+                    else:
+                        await self.queue_prompt.put(current_line)
                 # check if this is an "action"
                 elif self.action_controller.check_for_action(current_line) == False:
                     self._save_lines_to_file(current_line)
@@ -89,6 +109,12 @@ class Erika:
                     self.ACTION_PROMT_STRING):]
                 if last_chars == self.ACTION_PROMT_STRING:
                     self.action_controller.start_action_promt()
+            elif decoded_char in char_map.page_controls:
+                try:
+                    self.lines_per_page = self.LINES_PER_PAGE[decoded_char]
+                    print("Changing lines_per_page to {}".format(self.lines_per_page))
+                except:
+                    pass
             else:
                 self.input_line_buffer += decoded_char
 
@@ -99,9 +125,16 @@ class Erika:
             self.is_printing = True
             swriter = asyncio.StreamWriter(self.uart, {})
             lines = self.string_to_lines(text=text, linefeed=linefeed)
-            # print(lines)
-            for line in lines:
-                # print(line)
+            for idx, line in enumerate(lines):
+                print("line {}: {} / {}".format(idx, line, len(lines)))                
+                if self.line_on_page >= self.lines_per_page:
+                    print("asking for new paper")
+                    await self.ask_for_paper()
+                    print("ask_4_paper done")
+                else:
+                    self.line_on_page += 1
+                    print("line on page: {}".format(self.line_on_page))
+
                 for char in line:
                     sent = False
                     while not sent:
@@ -141,16 +174,20 @@ class Erika:
             await asyncio.sleep_ms(100)
         return True
 
-    async def ask(self, promt: str, ask_bool: bool = False) -> str:
+    async def ask(self, promt: str, ask_bool: bool = False, only_enter=False) -> str:
         """
         Prints a prompt and returns the answer from the user as string
+
+        only_enter(bool): used for asked_for_paper. Just waits for an Enter and returnes
         """
         positives = ['y', 'j', 'ja', 'ok', 'yes']
         negatives = ['n', 'nein', 'no']
 
         bool_promt_txt = ' (y/n) ' if ask_bool else ''
         promt_txt = promt + bool_promt_txt + ': '
-        await self.print_text(promt_txt, linefeed=False)
+        
+        if not only_enter:
+            await self.print_text(promt_txt, linefeed=False)
         print("Waiting for User-Input: {}".format(promt_txt))
         self.is_prompting = True
         user_answer = await self.queue_prompt.get()
@@ -170,6 +207,19 @@ class Erika:
             else:
                 print("Bool-Question was answered with {}".format(user_answer))
                 return await self.ask(promt="Fehler. Bitte mit 'Ja' oder 'Nein' antworten", ask_bool=True)
+
+    
+    async def ask_for_paper(self):
+        """
+        Promt User to enter Paper and press Enter
+        """
+        self.sender.alarm()
+        #self.sender.set_keyboard_echo(False)
+        write_to_screen("Papier einlegen", line=3, centered=True)
+        write_to_screen(" und ENTER", line=4, centered=True)   
+        self.is_prompting = True
+        await self.ask("",only_enter=True) # just wait for the Enter
+        self.line_on_page = 0
 
     def string_to_lines(self, text, max_length=DEFAULT_LINE_LENGTH, linefeed=True):
         '''
@@ -298,7 +348,7 @@ class Erika:
             print('Printing help...')
 
         async def typing(self, is_active):
-            '''Typing echo on/of"'''
+            '''Typing echo on/off"'''
             print("Typing is: {}".format(is_active))
             self.erika.sender.set_keyboard_echo(is_active)
             write_to_screen("Now typing is {}".format(is_active))
