@@ -62,7 +62,7 @@ class Erika:
         self.keyboard_echo = True
         
         # page settings
-        self.lines_per_page = self.LINES_PER_PAGE['LINE_SPACING_10']
+        self.lines_per_page = self.LINES_PER_PAGE['LINE_SPACING_20']
         self.line_on_page = 0
 
         # this is a way to upload files:
