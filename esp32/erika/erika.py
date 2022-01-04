@@ -239,8 +239,8 @@ class Erika:
             tmp_line = ''
 
             # If the text is less than a line, return it
-            if len(text) <= max_length:
-                lines.append(text + last_char)
+            if len(aline) <= max_length:
+                lines.append(aline + last_char)
             else:
                 # else split to lines
                 for word in words:
