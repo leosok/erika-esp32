@@ -128,13 +128,10 @@ class Erika:
             for idx, line in enumerate(lines):
                 print("line {}: {} / {}".format(idx, line, len(lines)))                
                 if self.line_on_page >= self.lines_per_page:
-                    print("asking for new paper")
+                    print("Asking for new paper")
                     await self.ask_for_paper()
-                    print("ask_4_paper done")
                 else:
                     self.line_on_page += 1
-                    print("line on page: {}".format(self.line_on_page))
-
                 for char in line:
                     sent = False
                     while not sent:
