@@ -63,6 +63,7 @@ if user_config.load():
     set_time()
     erika_mqqt = ErikaMqqt(erika=erika)
     erika.mqqt_client = erika_mqqt
+    screen.write_to_screen("Erika",line=1,centered=True)
     asyncio.run(
         start_all(erika=erika, mqqt=erika_mqqt)
         )
