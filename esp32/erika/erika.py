@@ -126,10 +126,13 @@ class Erika:
             swriter = asyncio.StreamWriter(self.uart, {})
             lines = self.string_to_lines(text=text, linefeed=linefeed)
             for idx, line in enumerate(lines):
-                print("line {}: {} / {}".format(idx, line, len(lines)))                
+                print("{}/{}: {}".format(idx, len(lines), line))                
                 if self.line_on_page >= self.lines_per_page:
                     print("Asking for new paper")
                     await self.ask_for_paper()
+                    # This is to "suck in" the new paper.
+                    # TODO: make this an option
+                    self.sender.paper_feed()
                 else:
                     self.line_on_page += 1
                 for char in line:
@@ -153,6 +156,7 @@ class Erika:
                             await asyncio.sleep_ms(40)
 
             self.is_printing = False
+            self.line_on_page = 0
             print('printer done for now')
 
     def start_uart(self, rx=5, tx=17, baud=1200):
@@ -317,10 +321,16 @@ class Erika:
             except AttributeError:
                 print("Could not execute '{}'".format(action_str))
 
+        async def p(self):
+            info = '''feeds paper'''
+            self.erika.sender.paper_feed()
+            return info
+
         async def hallo(self):
-            '''Prints a "hello"'''
+            info = '''Prints a "hello"'''
             asyncio.sleep(1)
             await self.erika.print_text('Hallo, Du!')
+            return info
 
         async def send(self):
             '''Send as Mail'''
@@ -388,6 +398,10 @@ class Erika:
             else:
                 self._print_raw("91")
                 time.sleep(0.2)
+
+        def paper_feed(self, steps = 140):
+            self._print_raw(steps * "75")
+            time.sleep(0.2)
 
         def _int_to_hex(self, value):
             hex_str = hex(value)[2:]

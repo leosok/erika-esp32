@@ -35,9 +35,7 @@ def network(ip=False, strength=False):
 def starting():
   oled = inizilize()
   oled = reset(5)
-  oled.text('Erika loading...', 10, 5)
-  oled.show()
-  #oled.text('MicroPython', 20, 20)
+  write_to_screen('Erika loading...', line=1, centered=True)
 
 def write_to_screen(text, margin=20, line=5, centered=False):
   # Screen is 16 char wide, each char 8 px

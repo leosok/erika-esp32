@@ -1,6 +1,12 @@
 
 print("main.py: Hello")
 
+# putting this up front to speed up
+from utils.misc import status_led
+import utils.screen_utils as screen
+status_led(False)
+screen.starting()
+
 import time
 from mqtt_connection import ErikaMqqt
 import ntptime
@@ -10,9 +16,8 @@ import network
 import machine
 
 from utils.network_utils import do_connect, scan_wlan
-import utils.screen_utils as screen
 from config import UserConfig
-from utils.misc import status_led
+
 
 async def wlan_strength(user_config:UserConfig, max=5):
     while True:
@@ -48,9 +53,6 @@ def set_time():
 ###############################
 #  ***      START       ***   #
 ###############################
-
-status_led(False)
-screen.starting()
 
 erika = Erika()
 user_config = UserConfig()
