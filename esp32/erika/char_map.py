@@ -156,15 +156,5 @@ page_controls = {
 
     # Char-Spaces
     'CHAR_SPACING_10': b"\x87",
-    'CHAR_SPACING_12': b"\x88",
-
-    # Directions
-    'DIR_RIGHT': b"\x73",
-    'DIR_LEFT': b"\x74",
-    'DIR_UP': b"\x76",
-    'DIR_DOWN': b"\x75",
-
-    # Print direction
-    'PRINT_DIR_FOREWARD': b"\x8D",
-    'PRINT_DIR_BACKWARD': b"\x8E"
+    'CHAR_SPACING_12': b"\x88"
 }

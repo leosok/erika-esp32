@@ -1,13 +1,14 @@
 # pylint: disable=unused-wildcard-import, method-hidden
 
-from erika import char_map
 import time
 from machine import UART, Pin
-from erika import erica_encoder_decoder
+from erika import (erica_encoder_decoder, print_utils, char_map)
+from erika.print_utils import PageControls
 import binascii
 import uasyncio as asyncio
 from lib.primitives.queue import Queue
 from utils.screen_utils import write_to_screen
+
 # from utils.umailgun import Mailgun, CONFIG_MY_EMAIL, MAILGUN_API_KEY, MAILGUN_API_URL
 
 # For more stuff see:
@@ -60,6 +61,7 @@ class Erika:
         self.is_prompting = False
 
         self.keyboard_echo = True
+        self.backwards_printing_active = True
         
         # page settings
         self.lines_per_page = self.LINES_PER_PAGE['LINE_SPACING_20']
@@ -124,9 +126,12 @@ class Erika:
             print('Printer found text in Queue. Linefeed is {}'.format(linefeed))
             self.is_printing = True
             swriter = asyncio.StreamWriter(self.uart, {})
-            lines = self.string_to_lines(text=text, linefeed=linefeed)
+            lines = print_utils.string_to_lines(text=text, max_length=self.DEFAULT_LINE_LENGTH, linefeed=linefeed)
+            if self.backwards_printing_active:
+                lines = print_utils.lines_to_print_instructions(lines)
+
             for idx, line in enumerate(lines):
-                print("{}/{}: {}".format(idx, len(lines), line))                
+                #print("{}/{}: {}".format(idx, len(lines), line))                
                 if self.line_on_page >= self.lines_per_page:
                     print("Asking for new paper")
                     await self.ask_for_paper()
@@ -134,7 +139,21 @@ class Erika:
                     # TODO: make this an option
                     self.sender.paper_feed()
                 else:
-                    self.line_on_page += 1
+                    self.line_on_page += 1                
+                if self.backwards_printing_active:
+                    is_backwards, line = line
+                    if is_backwards:
+                        # We are at the end of a "forward" line
+                        self.sender.move_down()
+                    else:
+                        # we are about to start a "forward line"
+                        await asyncio.sleep_ms(30)
+                        self.sender.newline()
+
+                    await asyncio.sleep_ms(30)
+                    self.sender.set_backwards_printing(is_backwards)
+                    print(line)
+                    
                 for char in line:
                     sent = False
                     while not sent:
@@ -155,6 +174,7 @@ class Erika:
                             sent = False
                             await asyncio.sleep_ms(40)
 
+            self.sender.set_backwards_printing(False)
             self.is_printing = False
             self.line_on_page = 0
             print('printer done for now')
@@ -221,40 +241,6 @@ class Erika:
         self.is_prompting = True
         await self.ask("",only_enter=True) # just wait for the Enter
         self.line_on_page = 0
-
-    def string_to_lines(self, text, max_length=DEFAULT_LINE_LENGTH, linefeed=True):
-        '''
-        Returns an array of lines with a max_length of DEFAULT_LINE_LENGTH
-        All newlines from the original lines are used
-        in case a line is to long, an extra newline is inserted
-        '''
-        newline = '\n'
-        if linefeed:
-            last_char = newline
-        else:
-            last_char = ''
-        all_lines = text.split(newline)
-        lines = []
-        for aline in all_lines:
-            words = aline.split()
-            tmp_line = ''
-
-            # If the text is less than a line, return it
-            if len(aline) <= max_length:
-                lines.append(aline + last_char)
-            else:
-                # else split to lines
-                for word in words:
-                    next = ' '.join([tmp_line, word])
-                    if len(next) <= max_length:
-                        tmp_line = next
-                    else:
-                        lines.append(tmp_line.strip() + newline)
-                        tmp_line = word
-
-                # for the last words
-                lines.append(tmp_line.strip() + last_char)
-        return lines
 
     def _save_lines_to_file(self, lines, filename=TEMP_LINES_FILE):
         f = open(filename, 'a')
@@ -378,30 +364,40 @@ class Erika:
 
         def _print_raw(self, data):
             """prints base16 formated data"""
+            time.sleep(0.15)
             byte_data = binascii.unhexlify(data)
-            print(byte_data)
             self.erika.uart.write(byte_data)
+            time.sleep(0.15)
 
         def _print_smiley(self):
             """print a smiley"""
-            self._print_raw('13')
-            time.sleep(0.2)
+            self._print_raw('13')            
             self._print_raw('1F')
-
-        def _newline(self):
-            self._print_raw('77')
 
         def set_keyboard_echo(self, is_active=True):
             if is_active:
                 self._print_raw("92")
-                time.sleep(0.2)
             else:
                 self._print_raw("91")
-                time.sleep(0.2)
 
         def paper_feed(self, steps = 140):
             self._print_raw(steps * "75")
+
+        def set_backwards_printing(self, backwards:bool=False):
             time.sleep(0.2)
+            if backwards:
+                print("print_dir: backwards")
+                self._print_raw(PageControls.PRINT_DIR_BACKWARD)
+            else:
+                print("print_dir: forward")
+                self._print_raw(PageControls.PRINT_DIR_FOREWARD)
+
+        def newline(self):
+            time.sleep(0.2)
+            self._print_raw('77')
+
+        def move_down(self, steps=2):
+            self._print_raw(steps * PageControls.DIR_DOWN)
 
         def _int_to_hex(self, value):
             hex_str = hex(value)[2:]
