@@ -19,27 +19,30 @@ function send_mqtt_msg(client, topic) {
   client.send(message);
 }
 
-function download(textarea_id){
+function download(textarea_id) {
   var text = document.getElementById(textarea_id).value;
   text = text.replace(/\n/g, "\r\n"); // To retain the Line breaks.
-  var blob = new Blob([text], { type: "text/plain"});
+  var blob = new Blob([text], { type: "text/plain" });
   var anchor = document.createElement("a");
   anchor.download = "my-filename.txt";
   anchor.href = window.URL.createObjectURL(blob);
-  anchor.target ="_blank";
+  anchor.target = "_blank";
   anchor.style.display = "none"; // just to be safe!
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
 }
 
-var clientId = "Erika-Web-Receiver";
-var device_name = "Erika-Web-Device-Receiver";
+var random_str =
+  Math.random().toString(36).substring(2, 15) +
+  Math.random().toString(36).substring(2, 15);
+var clientId = "Erika-Web-Receiver" + random_str;
+var device_name = "Erika-Web-Receiver" + random_str;
 var topics = {
   show: "erika/1/show",
   print: "erika/1/show",
   status: "erika/1/status",
-  keystrokes: "erika/1/keystrokes"
+  keystrokes: "erika/1/keystrokes",
 };
 
 var status = 0;
@@ -58,7 +61,7 @@ doConnect();
 
 // connect the client
 
-function doConnect(){
+function doConnect() {
   client.connect({
     onSuccess: onConnect,
     userName: config.MQQT_USERNAME,
@@ -76,9 +79,8 @@ function onConnect() {
   client.subscribe(topics.keystrokes);
   // disable reconnection timer
   if (window.reconnection_timer) {
-      clearInterval(window.reconnection_timer);
+    clearInterval(window.reconnection_timer);
   }
-
 }
 
 // called when the client loses its connection
@@ -96,20 +98,23 @@ function onConnectionLost(responseObject) {
 // called when a message arrives
 function onMessageArrived(message) {
   //console.log(message.destinationName + ":" + message.payloadString);
-  var print_button = document.querySelector('#print_button')
+  var print_button = document.querySelector("#print_button");
 
   switch (message.destinationName) {
     case topics.status:
       status = message.payloadString;
       if (Number(status) == 2) {
         document.getElementById("status").innerHTML = "printing...";
-        print_button.disabled = true
-
+        print_button.disabled = true;
       } else {
         document.getElementById("status").innerHTML = !!Number(status)
           ? "ready"
           : "offline";
-          print_button.disabled = false
+        print_button.disabled = false;
+
+        document.getElementById("erika_text").placeholder = !!Number(status)
+          ? "Ready to receive!"
+          : "Waiting...";
       }
 
       console.log("status change:" + status);
@@ -119,17 +124,18 @@ function onMessageArrived(message) {
       console.log("showning: " + message.payloadString);
       break;
 
-
     case topics.keystrokes:
-      var main_textarea = document.getElementById('erika_text')
-      next_char = message.payloadString
-      if (next_char == 'DEL') {
-        main_textarea.value =  main_textarea.value.substr(0, main_textarea.value.length - 1)
-      } 
-      else {
+      var main_textarea = document.getElementById("erika_text");
+      next_char = message.payloadString;
+      if (next_char == "DEL") {
+        main_textarea.value = main_textarea.value.substr(
+          0,
+          main_textarea.value.length - 1
+        );
+      } else {
         main_textarea.value += next_char;
       }
-     
+
       //console.log("")
       break;
   }

@@ -19,8 +19,9 @@ function send_mqtt_msg(client, topic) {
   client.send(message);
 }
 
-var clientId = "Erika-Web";
-var device_name = "Erika-Web-Device";
+var random_str = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+var clientId = "Erika-Web-Receiver" + random_str;
+var device_name = "Erika-Web-Receiver" + random_str;
 var topics = {
   show: "erika/1/show",
   print: "erika/1/show",

@@ -2,29 +2,24 @@
 
 <head>
   
-  <link rel="stylesheet" href="main.css">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <link rel="stylesheet" href="main_receiver.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
-  <script src="mqqt_config.js" type="text/javascript"></script>
+  <script src="../mqqt_config.js" type="text/javascript"></script>
   <script src="erika_web_receiver.js" type="text/javascript"></script>
 
 
-  <title>Erika Cloud</title>
+  <title>Erika Receiver</title>
 
   <style>
-    h1 {
-      color:white;
-      text-align: center;
-      padding-top: 50px;
-      -webkit-text-stroke: 2px rgb(0, 0, 0);
-      font-size: 4em;
-      font-family: 'Courier New', Courier, monospace;
-    }
+
   </style>
 </head>
 
 <body>
-
-
   <div class="header">
     <div class="logo_contrainer">
     <!-- <img src="img/erika_cloud_logo.gif"/> -->
@@ -33,7 +28,7 @@
 </div>
 <div class="content">
   <p>Status: <span id="status"></span></p>
-  <textarea id="erika_text" placeholder="Tell me lies..."></textarea>
+  <textarea id="erika_text" placeholder="Waiting for connection..."></textarea>
   <br />
   <div id="buttons_container">
   <button id="print_button" class="half" type="submit" onclick="send_mqtt_msg(client, 'erika/1/print')">Drucken</button>

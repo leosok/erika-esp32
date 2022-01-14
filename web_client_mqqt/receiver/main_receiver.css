@@ -1,9 +1,21 @@
+
+@media only screen and (min-device-width : 800px) {
 .header{
-    background-image:  url("img/sky_tile_tall.gif");
+    background-image:  url("../img/sky_tile_tall.gif");
     background-repeat: repeat-x;
     height: 310px;
     width: 100%;
 }
+
+
+h1 {
+    color:white;
+    text-align: center;
+    padding-top: 50px;
+    -webkit-text-stroke: 2px rgb(0, 0, 0);
+    font-size: 4em;
+    font-family: 'Courier New', Courier, monospace;
+  }
 
 
 .logo_contrainer{
@@ -33,6 +45,7 @@
         background-color: rgba(0,0,0,0.05);
         /* border: none; */
         resize: none;
+        color:orange;
     }
 
 
@@ -62,6 +75,7 @@
     /* border-radius: 5px; */
     
 }
+}
 
 
 @media only screen 
@@ -70,13 +84,15 @@ and (max-device-width : 812px)
 and (-webkit-device-pixel-ratio : 3) { /* Hier dein CSS einifügen */
 
     body {
-        background-color: #202020;
+        background-color: #000000;
     }
 
     .header{
-        height: 310px;
-        width: 100%;
-        background-color: #202020;
+        display: none;
+    }
+
+    .status {
+        display: none;
     }
 
 
@@ -86,6 +102,7 @@ and (-webkit-device-pixel-ratio : 3) { /* Hier dein CSS einifügen */
         border: #878787 1px;
         /* border-block-style: none; */
         width: 100%;
+        height: 90%;
         border-radius: 5px;
         border-style: dashed;
         min-height: 200px;
@@ -94,13 +111,42 @@ and (-webkit-device-pixel-ratio : 3) { /* Hier dein CSS einifügen */
         background-color: rgba(0,0,0,0.05);
         /* border: none; */
         resize: none;
+        color: orange;
     }
 
     .logo_contrainer{
-        height:310px;
         width: 100%;
+        height: 50px;
         margin: auto;
         display: block;
     }
+
+    .content button{
+        display: inline-block;
+        cursor: pointer;
+        color: #202020;
+        font-family: Courier;
+        font-weight: 600;
+        width: 100%;
+        margin-top: 10px;
+        font-size: 17px;
+        padding: 7px 17px;
+        /* border-radius: 5px; */
+        
+    }
+    
+    .content .half{
+        width: 48%;
+        float: left;
+    }
+    
+    .content button:disabled{
+        cursor: pointer;
+        color: #888888;
+        font-family: Courier;
+        /* border-radius: 5px; */
+        
+    }
+
 
 }

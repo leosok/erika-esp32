@@ -59,7 +59,7 @@ class Erika:
         self.is_printing = False
         self.is_prompting = False
 
-        self.keyboard_echo = True
+        self.keyboard_echo = False
         
         # page settings
         self.lines_per_page = self.LINES_PER_PAGE['LINE_SPACING_20']
@@ -67,7 +67,7 @@ class Erika:
 
         # this is a way to upload files:
         self.mqqt_client = None
-        self.mqqt_send_keystrokes = False
+        self.mqqt_send_keystrokes = True
 
     # async def print_test(self, queue, counter):
     #     while True:
