@@ -292,6 +292,7 @@ class Erika:
             write_to_screen("Enter Action")
             self.erika.sender.alarm()
             self.erika.sender.set_keyboard_echo(False)
+            self.erika.mqqt_send_keystrokes = False
 
         def check_for_action(self, input: str):
             if self.action_promt_string in input:
