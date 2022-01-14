@@ -67,6 +67,7 @@ class Erika:
 
         # this is a way to upload files:
         self.mqqt_client = None
+        self.mqqt_send_keystrokes = False
 
     # async def print_test(self, queue, counter):
     #     while True:
@@ -86,6 +87,8 @@ class Erika:
                 current_line = self.input_line_buffer
                 print(current_line)
                 self.input_lines_buffer.append(current_line)
+                if self.mqqt_send_keystrokes:
+                    await self.mqqt_client.send_keystroke(key='\n')
                 # if we are waiting for a response from a user-promt
                 if self.is_prompting:
                     print("promting... current_line is {}".format(current_line))
@@ -102,6 +105,8 @@ class Erika:
             elif decoded_char == 'DEL':
                 # remove last character, if DEL was hit
                 self.input_line_buffer = self.input_line_buffer[:-1]
+                if self.mqqt_send_keystrokes:
+                    await self.mqqt_client.send_keystroke(key='DEL')
             elif decoded_char == self.ACTION_PROMT_CHARS[-1:][0]:
                 self.input_line_buffer += decoded_char
                 # If we hit the last Char of ACTION_PROMT_STRING check if the rest was typed
@@ -117,6 +122,9 @@ class Erika:
                     pass
             else:
                 self.input_line_buffer += decoded_char
+                if self.mqqt_send_keystrokes:
+                    await self.mqqt_client.send_keystroke(key=decoded_char)
+
 
     async def printer(self, queue):
         while True:
@@ -326,6 +334,11 @@ class Erika:
             self.erika.sender.paper_feed()
             return info
 
+        async def keycast(self, is_active):
+            '''Send every key typed to MQQT'''
+            self.erika.mqqt_send_keystrokes = is_active
+            write_to_screen("Keycast: {}".format(is_active))
+
         async def hallo(self):
             info = '''Prints a "hello"'''
             asyncio.sleep(1)
@@ -356,9 +369,9 @@ class Erika:
 
         async def typing(self, is_active):
             '''Typing echo on/off"'''
-            print("Typing is: {}".format(is_active))
+            print("Typing: {}".format(is_active))
             self.erika.sender.set_keyboard_echo(is_active)
-            write_to_screen("Now typing is {}".format(is_active))
+            write_to_screen("Typing: {}".format(is_active))
 
     class Sender:
 

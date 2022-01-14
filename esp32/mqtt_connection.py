@@ -24,9 +24,11 @@ class ErikaMqqt:
                                                                       erika_id=erika_id)  # erika/1/status
         self.channel_print = b'{client_id}/{erika_id}/print'.format(client_id=mqqt_id,
                                                                     erika_id=erika_id)  # erika/1/print
-        # erika/upload
-        self.channel_upload = b'{client_id}/upload'.format(client_id=mqqt_id)
+        
+        self.channel_upload = b'{client_id}/upload'.format(client_id=mqqt_id) # erika/1/upload
 
+        self.channel_keystrokes = b'{client_id}/{erika_id}/keystrokes'.format(client_id=mqqt_id, erika_id=erika_id) # erika/1/upload
+        
         self.erika = erika
         self.mqqt_id = b'{}_{}'.format(mqqt_id, self.uuid)
         self.erika_id = erika_id
@@ -136,3 +138,7 @@ class ErikaMqqt:
                         "to": UserConfig().email_adress
                         }
         await self.client.publish(self.channel_upload, json.dumps(command_json), qos=1)
+
+    async def send_keystroke(self, key="", channel=None):
+        channel = channel or self.channel_keystrokes
+        await self.client.publish(self.channel_keystrokes, key, qos=0)

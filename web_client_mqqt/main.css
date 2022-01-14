@@ -14,7 +14,7 @@
 }
 
 .content{
-    width:50%;
+    width:100%;
     max-width:500px;
     margin:auto;
 }
@@ -48,6 +48,11 @@
     padding: 7px 17px;
     /* border-radius: 5px; */
     
+}
+
+.content .half{
+    width: 48%;
+    float: left;
 }
 
 .content button:disabled{
