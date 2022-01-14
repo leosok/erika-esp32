@@ -1,7 +1,7 @@
 <html>
 
 <head>
-  
+
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -22,21 +22,20 @@
 <body>
   <div class="header">
     <div class="logo_contrainer">
-    <!-- <img src="img/erika_cloud_logo.gif"/> -->
-    <h1>receiver</h1>
+      <!-- <img src="img/erika_cloud_logo.gif"/> -->
+      <h1>receiver</h1>
+    </div>
   </div>
-</div>
-<div class="content">
-  <p>Status: <span id="status"></span></p>
-  <textarea id="erika_text" placeholder="Waiting for connection..."></textarea>
-  <br />
-  <div id="buttons_container">
-  <button id="print_button" class="half" type="submit" onclick="send_mqtt_msg(client, 'erika/1/print')">Drucken</button>
-  <div style="width: 4%; display: block; float: left;">&nbsp;</div>
-  <button id="download_button" class="half" type="submit" onclick="download('erika_text')">Download</button>
-</div>
-  <!-- <button type="submit" onclick="send_mqtt_msg(client, 'erika/1/show')">Anzeigen</button> -->
-</div>
+  <div class="content">
+    <p class="status">Status: <span id="status"></span></p>
+    <textarea id="erika_text" placeholder="Waiting for connection..."></textarea>
+    <div id="buttons_container">
+      <button id="print_button" class="half" type="submit"
+        onclick="send_mqtt_msg(client, 'erika/1/print')">Drucken</button>
+      <div style="width: 4%; display: block; float: left;">&nbsp;</div>
+      <button id="download_button" class="half" type="submit" onclick="download('erika_text')">Download</button>
+    </div>
+  </div>
 </body>
 
 </html>

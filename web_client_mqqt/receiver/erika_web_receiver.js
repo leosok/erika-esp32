@@ -38,6 +38,11 @@ function typeInTextarea(newText, el = document.activeElement) {
   el.setRangeText(newText, start, end, 'end');
 }
 
+function removePreviousCharacter(el = document.activeElement) {
+  const [start, end] = [el.selectionStart, el.selectionEnd];
+  el.setRangeText('', start-1, end, 'end');
+}
+
 function add_text_to_textarea(textarea, text){
   // Adds Text(Char) and scrolls down
 
@@ -144,10 +149,7 @@ function onMessageArrived(message) {
       var main_textarea = document.getElementById("erika_text");
       next_char = message.payloadString;
       if (next_char == "DEL") {
-        main_textarea.value = main_textarea.value.substr(
-          0,
-          main_textarea.value.length - 1
-        );
+        removePreviousCharacter(main_textarea)
       } else {
        add_text_to_textarea(main_textarea, next_char)
       }
