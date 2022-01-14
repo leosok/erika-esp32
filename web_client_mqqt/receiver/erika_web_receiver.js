@@ -33,6 +33,22 @@ function download(textarea_id) {
   document.body.removeChild(anchor);
 }
 
+function typeInTextarea(newText, el = document.activeElement) {
+  const [start, end] = [el.selectionStart, el.selectionEnd];
+  el.setRangeText(newText, start, end, 'end');
+}
+
+function add_text_to_textarea(textarea, text){
+  // Adds Text(Char) and scrolls down
+
+  typeInTextarea(text, textarea)
+  if (textarea.selectionEnd >= textarea.textLength) {
+    // If we are at the buttom, scroll down for better text view
+    textarea.scrollTop = textarea.scrollHeight
+  } 
+}
+
+
 var random_str =
   Math.random().toString(36).substring(2, 15) +
   Math.random().toString(36).substring(2, 15);
@@ -133,7 +149,7 @@ function onMessageArrived(message) {
           main_textarea.value.length - 1
         );
       } else {
-        main_textarea.value += next_char;
+       add_text_to_textarea(main_textarea, next_char)
       }
 
       //console.log("")
