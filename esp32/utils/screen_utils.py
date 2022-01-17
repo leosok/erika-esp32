@@ -3,6 +3,8 @@
 from machine import SoftI2C, Pin
 import ssd1306
 import time
+from uQR import QRCode
+
 print("Show Wlan on Screen now")
 
 oled = False
@@ -57,6 +59,19 @@ def show_progress(progress=0, max=100, line=5):
   oled.fill_rect(margin, 50, current_width, 5, 50) # filling
   oled.rect(margin, 50, oled.width-margin, 5, 50) # outer rect
   oled.show()
+
+
+def show_qr_code(data="http://erika-cloud.de", size=1):
+  
+  qr = QRCode()
+  qr.add_data(data)
+  matrix = qr.get_matrix()
+  for line_num, line_data in enumerate(matrix):
+    for row_num, row_data in enumerate(line_data):
+      oled.pixel(line_num, row_num, row_data)
+  oled.show()
+
+
 
 
 def sleep_player():
