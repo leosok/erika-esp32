@@ -5,7 +5,9 @@ from os import path as op
 
 
 db = SqliteDatabase(None)
+DB_FILE = 'erika_data.db'
 PROJECT_DIR = op.dirname(__file__)
+DB_FILE_PATH = op.join(PROJECT_DIR, '..', DB_FILE)
 
 
 class Textdata(Model):
@@ -36,13 +38,40 @@ class Textdata(Model):
             else:
                 fulltext += line.content + ' '
         return fulltext
-        
 
+
+class Typewriter(Model):
+    user_firstname = CharField(null = True)
+    user_lastname = CharField(null = True)
+    erika_name = CharField(null = True)
+    user_email = CharField(null = True)
+    uuid = CharField(null = True)
+    email = CharField(null = True)
+    created_at = DateTimeField(default=datetime.now)
+    # Extra-Settings
+    status = IntegerField(default=0)
+    chat_active = BooleanField(default=1)
+
+    class Meta:
+        database = db
+
+
+class Message(Model):
+    typewriter = ForeignKeyField(Typewriter, related_name='messages')
+    sender = CharField()
+    subject = CharField()
+    body = TextField()
+    received_at = DateTimeField(default=datetime.now)
+
+    class Meta:
+        database = db
 
 def initialize_models():
+    db.init(DB_FILE_PATH)
 
-    db.init(op.join(PROJECT_DIR,'..','erika_text_data.db'))
-    # Unique constraint will take care of MQQT qos level 1, which can send msgs more than once
-    # -> removed because blank lines would not save, but doubble entries did not occur
-    # Textdata.add_index(Textdata.hashid, Textdata.content, unique=True)
-    db.create_tables([Textdata])
+
+if __name__ == '__main__':
+    tables = [Textdata, Typewriter, Message]
+    db.init(DB_FILE_PATH)
+    print(f"Creating Tables {tables}... in {DB_FILE_PATH}")
+    db.create_tables(tables)
