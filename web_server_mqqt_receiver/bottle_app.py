@@ -1,9 +1,11 @@
-from bottle import route, run, hook, view, default_app, request, redirect, HTTPResponse
+from bottle import route, run, hook, view, default_app, request, redirect, HTTPResponse, static_file
 import time
 import json
 import logging
 from app.model import db, initialize_models, Textdata, Typewriter, Message
 from email.utils import parseaddr
+from playhouse.shortcuts import model_to_dict
+import os.path as op
 
 logging.basicConfig()
 logger = logging.getLogger('erika_bottle')
@@ -26,11 +28,25 @@ def _close_db():
         db.close()
 
 
+
+@route('/static/<filename>')
+def server_static(filename):
+    return static_file(filename, root=op.join(op.dirname(__file__), 'static'))
+
 @route('/pages')
 @view('all_pages.tpl.html')
 def all():
     pages = Textdata.select().order_by(Textdata.timestamp.asc()).group_by(Textdata.hashid)
     return dict(pages=pages)
+
+@route('/erika/<uuid>/emails')
+@view('erika_single.tpl.html')
+def erika_single(uuid):
+    typewriter = Typewriter.select().where(Typewriter.uuid == uuid).get()
+    emails = typewriter.messages.dicts()
+
+    return dict(emails=emails)
+
 
 
 @route('/pages/<hashid>')
