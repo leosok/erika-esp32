@@ -28,9 +28,8 @@ def _close_db():
         db.close()
 
 
-
-@route('/static/<filename>')
-def server_static(filename):
+@route('/static/<filename:path>')
+def send_static(filename):
     return static_file(filename, root=op.join(op.dirname(__file__), 'static'))
 
 @route('/pages')
@@ -38,16 +37,6 @@ def server_static(filename):
 def all():
     pages = Textdata.select().order_by(Textdata.timestamp.asc()).group_by(Textdata.hashid)
     return dict(pages=pages)
-
-@route('/erika/<uuid>/emails')
-@view('erika_single.tpl.html')
-def erika_single(uuid):
-    typewriter = Typewriter.select().where(Typewriter.uuid == uuid).get()
-    emails = typewriter.messages.dicts()
-
-    return dict(emails=emails)
-
-
 
 @route('/pages/<hashid>')
 @view('single_page.tpl.html')
@@ -59,6 +48,33 @@ def single(hashid):
     else:
         lines = Textdata.select().where(Textdata.hashid == hashid).order_by(Textdata.line_number)
         return dict(lines=lines, fulltext=Textdata.as_fulltext(hashid))
+
+@route('/erika/<uuid>/emails')
+@view('erika_single.tpl.html')
+def erika_single(uuid):
+    typewriter = Typewriter.select().where(Typewriter.uuid == uuid).get()
+    emails = typewriter.messages.dicts()
+
+    return dict(emails=emails)
+
+
+@route('/')
+@view('main_page_sender.tpl.html')
+def index_sender():
+    typewriters = Typewriter.select().where(Typewriter.status == 1)
+    # emails = typewriter.messages.dicts()
+    print(typewriters)
+
+    return dict(typewriters=typewriters)
+
+@route('/erika/<erika_name>/')
+@view('erika_single.tpl.html')
+def erika_sender(erika_name):
+    typewriter = Typewriter.select().where(Typewriter.erika_name == erika_name.lower()).get()
+
+    return dict(emails=emails)
+
+
 
 
 @route('/incoming', method='POST')
