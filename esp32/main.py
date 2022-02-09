@@ -6,8 +6,8 @@ from utils.misc import status_led
 import utils.screen_utils as screen
 
 status_led(False)
+print("starting screen...")
 screen.starting()
-screen.show_qr_code()
 
 
 import time
@@ -51,6 +51,7 @@ def set_time():
         ntptime.settime()
     except:
         print("Could not set time.")
+
 
 
 ###############################

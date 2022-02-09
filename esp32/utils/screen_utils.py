@@ -1,22 +1,34 @@
 # screen_utils.py
 
-from machine import SoftI2C, Pin
-import ssd1306
+from machine import SoftI2C, Pin 
 import time
 from uQR import QRCode
 
-print("Show Wlan on Screen now")
+class DisplayType:
+    WIFI_KIT = 0
+    D_DUINO = 1           
 
 oled = False
 
-def inizilize():
+def inizilize(display_type = DisplayType.D_DUINO):
   global oled
-  rst = Pin(16, Pin.OUT)
-  rst.value(1)
-  scl = Pin(15, Pin.OUT, Pin.PULL_UP)
-  sda = Pin(4, Pin.OUT, Pin.PULL_UP)
-  i2c = SoftI2C(scl=scl, sda=sda, freq=450000)
-  oled = ssd1306.SSD1306_I2C(128, 64, i2c, addr=0x3c)
+
+  if display_type == DisplayType.WIFI_KIT:
+    import ssd1306
+    print("Display is Wifi_Kit ")
+    scl = Pin(15, Pin.OUT, Pin.PULL_UP)
+    sda = Pin(4, Pin.OUT, Pin.PULL_UP)
+    i2c = SoftI2C(scl=scl, sda=sda, freq=450000)
+    oled = ssd1306.SSD1306_I2C(128, 64, i2c, addr=0x3c)
+  
+  elif display_type == DisplayType.D_DUINO:
+    import sh1106
+    print("Display is D-Duino ")
+    sda = Pin(26)
+    scl = Pin(27)
+    i2c = SoftI2C(scl=scl, sda=sda, freq=400000)
+    oled = sh1106.SH1106_I2C(128, 64, i2c, addr=0x3c)
+        
   return oled
 
 def reset(lines=4):
@@ -37,7 +49,8 @@ def network(ip=False, strength=False):
 def starting():
   oled = inizilize()
   oled = reset(5)
-  write_to_screen('Erika loading...', line=1, centered=True)
+  write_to_screen('Erika loading..', line=1, centered=True)
+  write_to_screen('zweite', line=2, centered=True)
 
 def write_to_screen(text, margin=20, line=5, centered=False):
   # Screen is 16 char wide, each char 8 px
@@ -62,7 +75,9 @@ def show_progress(progress=0, max=100, line=5):
 
 
 def show_qr_code(data="http://erika-cloud.de", size=1):
-  
+  oled = inizilize()
+  oled = reset(5)
+  print("making QRcode")
   qr = QRCode()
   qr.add_data(data)
   matrix = qr.get_matrix()
@@ -70,8 +85,6 @@ def show_qr_code(data="http://erika-cloud.de", size=1):
     for row_num, row_data in enumerate(line_data):
       oled.pixel(line_num, row_num, row_data)
   oled.show()
-
-
 
 
 def sleep_player():
