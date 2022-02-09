@@ -1,9 +1,11 @@
-from bottle import route, run, hook, view, default_app, request, redirect, HTTPResponse
+from bottle import route, run, hook, view, default_app, request, redirect, HTTPResponse, static_file
 import time
 import json
 import logging
 from app.model import db, initialize_models, Textdata, Typewriter, Message
 from email.utils import parseaddr
+from playhouse.shortcuts import model_to_dict
+import os.path as op
 
 logging.basicConfig()
 logger = logging.getLogger('erika_bottle')
@@ -26,12 +28,15 @@ def _close_db():
         db.close()
 
 
+@route('/static/<filename:path>')
+def send_static(filename):
+    return static_file(filename, root=op.join(op.dirname(__file__), 'static'))
+
 @route('/pages')
 @view('all_pages.tpl.html')
 def all():
     pages = Textdata.select().order_by(Textdata.timestamp.asc()).group_by(Textdata.hashid)
     return dict(pages=pages)
-
 
 @route('/pages/<hashid>')
 @view('single_page.tpl.html')
@@ -43,6 +48,33 @@ def single(hashid):
     else:
         lines = Textdata.select().where(Textdata.hashid == hashid).order_by(Textdata.line_number)
         return dict(lines=lines, fulltext=Textdata.as_fulltext(hashid))
+
+@route('/erika/<uuid>/emails')
+@view('erika_single.tpl.html')
+def erika_single(uuid):
+    typewriter = Typewriter.select().where(Typewriter.uuid == uuid).get()
+    emails = typewriter.messages.dicts()
+
+    return dict(emails=emails)
+
+
+@route('/')
+@view('main_page_sender.tpl.html')
+def index_sender():
+    typewriters = Typewriter.select().where(Typewriter.status == 1)
+    # emails = typewriter.messages.dicts()
+    print(typewriters)
+
+    return dict(typewriters=typewriters)
+
+@route('/erika/<erika_name>/')
+@view('erika_single.tpl.html')
+def erika_sender(erika_name):
+    typewriter = Typewriter.select().where(Typewriter.erika_name == erika_name.lower()).get()
+
+    return dict(emails=emails)
+
+
 
 
 @route('/incoming', method='POST')

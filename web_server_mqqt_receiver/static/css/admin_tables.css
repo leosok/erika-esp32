@@ -1,0 +1,41 @@
+
+.container {
+	max-width: 1000px;
+	margin-right:auto;
+	margin-left:auto;
+	display:flex;
+	justify-content:center;
+	/*align-items:center;*/
+	/*min-height:100vh;*/
+}
+
+.table {
+	width:100%;
+	border:1px solid grey;
+}
+
+.table-header {
+	display:flex;
+	width:100%;
+	background:grey;
+	padding:18px 0px;
+}
+
+.table-row {
+	display:flex;
+	width:100%;
+	padding:18px 0px;
+	}
+
+.table-row:nth-of-type(odd) {
+		background: lightgrey;
+}
+
+.table-data, .header__item {
+	flex: 1 1 20%;
+	text-align:center;
+}
+
+.header__item {
+	text-transform:uppercase;
+}
