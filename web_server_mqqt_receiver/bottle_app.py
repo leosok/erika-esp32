@@ -1,26 +1,30 @@
-from bottle import route, run, hook, view, default_app, request, redirect
+from bottle import route, run, hook, view, default_app, request, redirect, HTTPResponse
 import time
 import json
 import logging
-from app.model import db, initialize_models, Textdata
+from app.model import db, initialize_models, Textdata, Typewriter, Message
+from email.utils import parseaddr
 
 logging.basicConfig()
 logger = logging.getLogger('erika_bottle')
 logger.setLevel(logging.DEBUG)
+APP_HOST = 'erika-cloud.de'
 
 @hook('before_request')
 def strip_path():
     request.environ['PATH_INFO'] = request.environ['PATH_INFO'].rstrip('/')
 
+
 @hook('before_request')
 def _connect_db():
     db.connect()
+
 
 @hook('after_request')
 def _close_db():
     if not db.is_closed():
         db.close()
-        
+
 
 @route('/pages')
 @view('all_pages.tpl.html')
@@ -28,46 +32,55 @@ def all():
     pages = Textdata.select().order_by(Textdata.timestamp.asc()).group_by(Textdata.hashid)
     return dict(pages=pages)
 
+
 @route('/pages/<hashid>')
 @view('single_page.tpl.html')
 def single(hashid):
     if request.query.action == "delete":
         logger.info(f"Deleting {hashid}")
-        Textdata.delete().where(Textdata.hashid==hashid).execute()
+        Textdata.delete().where(Textdata.hashid == hashid).execute()
         redirect("/pages")
     else:
-        lines = Textdata.select().where(Textdata.hashid==hashid).order_by(Textdata.line_number)
+        lines = Textdata.select().where(Textdata.hashid == hashid).order_by(Textdata.line_number)
         return dict(lines=lines, fulltext=Textdata.as_fulltext(hashid))
 
 
 @route('/incoming', method='POST')
+@route('/incoming_email', method='POST')
 def incoming_webhook():
-    
-    from app.mqqt import ErikaMqqt
-    from secrets import MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD
-    erika_mqqt = ErikaMqqt(MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD)
+    data = request.json
 
-    # Create a german date to print
-    import locale
-    from email.utils import parsedate_to_datetime
-    mail_date = parsedate_to_datetime(request.json['headers']['date'])
-    locale.setlocale(locale.LC_TIME, "de_DE")
-    print_date = mail_date.strftime("%A, %d %b %Y %H:%M")
+    receiver_name, receiver_email = parseaddr(data['headers']['to'])
+    sender_name, sender_email = parseaddr(data['headers']['from'])
+    erika = Typewriter.select().where(Typewriter.email == receiver_email)
+    if not erika:
+        return HTTPResponse(status=404, body=f"No Typewriter found for adress {receiver_email}")
 
+    msg = Message.create(
+        typewriter=erika,
+        sender=sender_email,
+        subject=data['headers']['subject'],
+        body=data['plain']
+    )
 
-    print_template = [
-        "\n\n",
-        "--------  EMAIL -------\n",
-        "{}".format(print_date),
-        "Von: {}".format(request.json['headers']['from']),
-        "Btr.: {}".format(request.json['headers']['subject']),
-        " ",
-        "{}".format(request.json['plain'])        
-    ]
+    print(f"Created Message: {msg}")
+    return "ok"
 
-    print_str = '\n'.join(print_template)
-    erika_mqqt.mqttc.publish('erika/1/print',print_str)
-    
+@route('/typewriter', method='POST')
+def register_typewriter():
+    data = request.json
+
+    typewriter = Typewriter.create(
+        user_firstname = data['firstname'],
+        user_lastname = data['lastname'],
+        erika_name = data['erika_name'],
+        user_email = data['email'].lower(),
+        uuid = data['uuid'],
+        email = f"{data['erika_name'].lower()}@{APP_HOST}",
+        chat_active = data['chat_active']
+    )
+
+    print(f"Created Typewriter: {typewriter}")
     return "ok"
 
 
