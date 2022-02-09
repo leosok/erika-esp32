@@ -8,6 +8,7 @@ import utils.screen_utils as screen
 status_led(False)
 print("starting screen...")
 screen.starting()
+#screen.show_qr_code()
 
 
 import time
@@ -58,26 +59,26 @@ def set_time():
 #  ***      START       ***   #
 ###############################
 
-# erika = Erika()
-# user_config = UserConfig()
+erika = Erika()
+user_config = UserConfig()
 
-# # Here we have to xcheck, if a configuration is present.
-# # If not, we need ot gather data from the user.
+# Here we have to xcheck, if a configuration is present.
+# If not, we need ot gather data from the user.
 
-# if user_config.load():
-#     do_connect(user_config.wlan_ssid, user_config.wlan_password)
-#     set_time()
-#     erika_mqqt = ErikaMqqt(erika=erika)
-#     erika.mqqt_client = erika_mqqt
-#     screen.write_to_screen("Erika",line=1,centered=True)
-#     asyncio.run(
-#         start_all(erika=erika, mqqt=erika_mqqt)
-#         )
-# else:
-#     print("No Config found. Asking User for it...")
-#     asyncio.run(
-#         start_config(erika=erika)
-#         )
-#     print("Restarting Erika...")
-#     machine.reset()
-#     #asyncio.run(main(erika=erika, mqqt=erika_mqqt))
+if user_config.load():
+    do_connect(user_config.wlan_ssid, user_config.wlan_password)
+    set_time()
+    erika_mqqt = ErikaMqqt(erika=erika)
+    erika.mqqt_client = erika_mqqt
+    screen.write_to_screen("Erika",line=1,centered=True)
+    asyncio.run(
+        start_all(erika=erika, mqqt=erika_mqqt)
+        )
+else:
+    print("No Config found. Asking User for it...")
+    asyncio.run(
+        start_config(erika=erika)
+        )
+    print("Restarting Erika...")
+    machine.reset()
+    #asyncio.run(main(erika=erika, mqqt=erika_mqqt))

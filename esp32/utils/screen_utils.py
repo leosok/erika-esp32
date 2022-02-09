@@ -2,7 +2,6 @@
 
 from machine import SoftI2C, Pin 
 import time
-from uQR import QRCode
 
 class DisplayType:
     WIFI_KIT = 0
@@ -49,8 +48,7 @@ def network(ip=False, strength=False):
 def starting():
   oled = inizilize()
   oled = reset(5)
-  write_to_screen('Erika loading..', line=1, centered=True)
-  write_to_screen('zweite', line=2, centered=True)
+  write_to_screen('Erika loading...', line=1, centered=True)
 
 def write_to_screen(text, margin=20, line=5, centered=False):
   # Screen is 16 char wide, each char 8 px
@@ -74,17 +72,18 @@ def show_progress(progress=0, max=100, line=5):
   oled.show()
 
 
-def show_qr_code(data="http://erika-cloud.de", size=1):
-  oled = inizilize()
-  oled = reset(5)
-  print("making QRcode")
-  qr = QRCode()
-  qr.add_data(data)
-  matrix = qr.get_matrix()
-  for line_num, line_data in enumerate(matrix):
-    for row_num, row_data in enumerate(line_data):
-      oled.pixel(line_num, row_num, row_data)
-  oled.show()
+# def show_qr_code(data="http://erika-cloud.de", size=1):
+    # from uQR import QRCode
+#   oled = inizilize()
+#   oled = reset(5)
+#   print("making QRcode")
+#   qr = QRCode()
+#   qr.add_data(data)
+#   matrix = qr.get_matrix()
+#   for line_num, line_data in enumerate(matrix):
+#     for row_num, row_data in enumerate(line_data):
+#       oled.pixel(line_num, row_num, row_data)
+#   oled.show()
 
 
 def sleep_player():
