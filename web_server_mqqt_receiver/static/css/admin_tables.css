@@ -8,18 +8,14 @@
 	/*align-items:center;*/
 	/*min-height:100vh;*/
 }
-
+/* 
 .table {
 	width:100%;
 	border:1px solid grey;
+	border-collapse: collapse;
 }
 
-.table-header {
-	display:flex;
-	width:100%;
-	background:grey;
-	padding:18px 0px;
-}
+
 
 .table-row {
 	display:flex;
@@ -27,15 +23,28 @@
 	padding:18px 0px;
 	}
 
+*/
 .table-row:nth-of-type(odd) {
-		background: lightgrey;
+	background: lightgrey;
+}
+
+.table-header {
+	background:grey;
+	padding:18px 0px;
 }
 
 .table-data, .header__item {
-	flex: 1 1 20%;
 	text-align:center;
+	padding: 5px 10px;
+	white-space: nowrap;
 }
 
 .header__item {
-	text-transform:uppercase;
+	text-transform:capitalize;
+	padding: 10px;
 }
+
+.table, th, td {
+	border: 1px solid rgb(153, 153, 153);
+	border-collapse: collapse;
+  }
