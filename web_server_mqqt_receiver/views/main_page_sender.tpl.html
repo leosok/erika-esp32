@@ -21,9 +21,9 @@
 </div>
 <div class="content">
   <p>Status: <span id="status"></span></p>
-  <select name="typewriters_online">
+  <span>Erika: </span><select name="typewriters_online">
     %for typeriter in typewriters:
-      <option>{{typeriter.erika_name}}</option>
+      <option>{{typeriter.erika_name}} ({{typeriter.user_firstname}})</option>
     %end
   </select>
   <textarea id="erika_text" placeholder="Tell me lies..."></textarea>
