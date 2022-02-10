@@ -9,12 +9,14 @@ class DisplayType:
 
 oled = False
 
-def inizilize(display_type = DisplayType.D_DUINO):
+def inizilize(display_type = DisplayType.WIFI_KIT):
   global oled
 
   if display_type == DisplayType.WIFI_KIT:
     import ssd1306
     print("Display is Wifi_Kit ")
+    rst = Pin(16, Pin.OUT)
+    rst.value(1)
     scl = Pin(15, Pin.OUT, Pin.PULL_UP)
     sda = Pin(4, Pin.OUT, Pin.PULL_UP)
     i2c = SoftI2C(scl=scl, sda=sda, freq=450000)
@@ -27,7 +29,6 @@ def inizilize(display_type = DisplayType.D_DUINO):
     scl = Pin(27)
     i2c = SoftI2C(scl=scl, sda=sda, freq=400000)
     oled = sh1106.SH1106_I2C(128, 64, i2c, addr=0x3c)
-        
   return oled
 
 def reset(lines=4):
