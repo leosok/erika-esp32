@@ -9,6 +9,7 @@ from config import MqqtConfig, UserConfig
 from utils.misc import status_led
 import ubinascii
 import machine
+import gc
 
 
 class ErikaMqqt:
@@ -17,7 +18,6 @@ class ErikaMqqt:
     ERIKA_STATE_PRINTING = b'2'
 
     def __init__(self, erika, mqqt_id='erika', erika_id='1'):
-
         self.uuid = ubinascii.hexlify(machine.unique_id())
 
         self.channel_status = b'{client_id}/{erika_id}/status'.format(client_id=mqqt_id,
