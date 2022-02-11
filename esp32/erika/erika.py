@@ -59,7 +59,8 @@ class Erika:
         self.is_printing = False
         self.is_prompting = False
 
-        self.keyboard_echo = False
+        self.keyboard_echo = True
+        self.mqqt_send_keystrokes = False
         
         # page settings
         self.lines_per_page = self.LINES_PER_PAGE['LINE_SPACING_20']
@@ -67,7 +68,6 @@ class Erika:
 
         # this is a way to upload files:
         self.mqqt_client = None
-        self.mqqt_send_keystrokes = True
 
     # async def print_test(self, queue, counter):
     #     while True:
@@ -363,6 +363,7 @@ class Erika:
             from config.configurator import UserConfig
             result = UserConfig().delete()
             write_to_screen("Reset: {}".format(result))
+            machine.reset()
 
         def help(self):
             '''Prints all Controll-Functions'''
@@ -396,6 +397,11 @@ class Erika:
             print(byte_data)
             self.erika.uart.write(byte_data)
 
+        def _print_char(self, char):
+            byte_data = self.erika.ddr_2_ascii.encode(char)
+            self.erika.uart.write(byte_data)
+            time.sleep(0.2)
+
         def _print_smiley(self):
             """print a smiley"""
             self._print_raw('13')
@@ -421,3 +427,4 @@ class Erika:
             hex_str = hex(value)[2:]
             hex_str = "0"+hex_str
             return hex_str[-2:]
+            

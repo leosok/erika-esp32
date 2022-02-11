@@ -2,6 +2,7 @@ import os
 import json
 from erika import Erika
 from utils.network_utils import scan_wlan, get_wlan_strength, do_connect
+import uasyncio as asyncio
 
 
 class MqqtConfig:
@@ -34,6 +35,8 @@ class MqqtConfig:
 class UserConfig:
     
     CONF_FILE = 'config/user_config.json'
+    WELCOME_FILE = 'config/welcome.txt'
+
     
     def __init__(self):
         self.wlan_password = None
@@ -67,6 +70,17 @@ class UserConfig:
         except:
             return False
 
+    def load_welcome_text(self):
+        """
+        Loads Welcome.txt
+        Returns: text or False
+        """
+        try:
+            with open(self.WELCOME_FILE, 'r') as f:
+                return '\n'.join(f.readlines())
+        except:
+            return False
+
     def delete(self):
         """
         Delets config from JSON
@@ -86,6 +100,8 @@ class UserConfig:
         reset().show()
         await erika.ask_for_paper()
         
+        await erika.print_text(self.load_welcome_text())
+
         reset().show()
         write_to_screen("Konfiguration", line=2, centered=True)
         show_progress(0,5)
@@ -111,7 +127,7 @@ class UserConfig:
             await erika.print_text(wlan_line)
             print( wlan_line)
 
-        erika.sender._newline
+        erika.sender._newline()
         wlan_number_str = await erika.ask("Bitte Nummer des Netwerks eingeben")
         show_progress(3,5)
         try:
@@ -120,7 +136,7 @@ class UserConfig:
             wlan_number_str = await erika.ask("'{}' ungültig. Bitte Nummer des Netwerks eingeben".format(wlan_number_str))
             self.wlan_ssid = wlans[int(wlan_number_str)-1][0] # last 0 is for the tuple
 
-        self.wlan_password = await erika.ask("Bitte Passwort eingeben:")
+        self.wlan_password = await erika.ask("Bitte Passwort eingeben")
         show_progress(3,5)
 
         if do_connect(self.wlan_ssid, self.wlan_password, timeout_sec=10):

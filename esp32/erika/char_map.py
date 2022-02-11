@@ -166,5 +166,9 @@ page_controls = {
 
     # Print direction
     'PRINT_DIR_FOREWARD': b"\x8D",
-    'PRINT_DIR_BACKWARD': b"\x8E"
+    'PRINT_DIR_BACKWARD': b"\x8E",
+
+    # Correct-Tape
+    'CORRECTION_TAPE_ON': b"\x8C",
+    'CORRECTION_TAPE_OFF': b"\x8B"
 }
