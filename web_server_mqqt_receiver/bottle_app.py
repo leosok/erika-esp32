@@ -128,18 +128,21 @@ def incoming_webhook():
 def register_typewriter():
     data = request.json
 
+    #ToDo if erika_mail is already taken
+
     typewriter = Typewriter.create(
-        user_firstname=data['firstname'],
-        user_lastname=data['lastname'],
-        erika_name=data['erika_name'].lower(),
-        user_email=data['email'].lower(),
-        uuid=data['uuid'],
-        email=f"{data['erika_name'].lower()}@{APP_HOST}",
-        chat_active=data['chat_active']
+        user_firstname=data.get('firstname',''),
+        user_lastname=data.get('lastname',''),
+        erika_name=data.get('erika_name','').lower(),
+        user_email=data.get('email','').lower(),
+        uuid=data.get('uuid'),
+        email=f"{data.get('erika_name','').lower()}@{APP_HOST}",
+        chat_active=data.get('chat_active','')
     )
 
     print(f"Created Typewriter: {typewriter}")
-    return "ok"
+    response = {"erika_mail": typewriter.email}
+    return json.dumps(response)
 
 
 @route('/admin/typewriters', method='GET')
@@ -162,4 +165,4 @@ db.close()
 application = default_app()
 
 if __name__ == "__main__":
-    run(host='localhost', port=8080, debug=True, reloader=True)
+    run(host='0.0.0.0', port=8080, debug=True, reloader=True)
