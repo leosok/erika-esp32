@@ -2,7 +2,7 @@
 
 from erika import char_map
 import time
-from machine import UART, Pin
+from machine import UART, Pin, unique_id, reset
 from erika import erica_encoder_decoder
 import binascii
 import uasyncio as asyncio
@@ -68,6 +68,7 @@ class Erika:
 
         # this is a way to upload files:
         self.mqqt_client = None
+        self.uuid = binascii.hexlify(unique_id()).decode()
 
     # async def print_test(self, queue, counter):
     #     while True:
@@ -363,7 +364,7 @@ class Erika:
             from config.configurator import UserConfig
             result = UserConfig().delete()
             write_to_screen("Reset: {}".format(result))
-            machine.reset()
+            reset()
 
         def help(self):
             '''Prints all Controll-Functions'''
@@ -427,4 +428,3 @@ class Erika:
             hex_str = hex(value)[2:]
             hex_str = "0"+hex_str
             return hex_str[-2:]
-            

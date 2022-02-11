@@ -3,7 +3,8 @@ import json
 from erika import Erika
 from utils.network_utils import scan_wlan, get_wlan_strength, do_connect
 import uasyncio as asyncio
-
+import urequests
+import machine
 
 class MqqtConfig:
 
@@ -33,7 +34,8 @@ class MqqtConfig:
         return self.__dict__
 
 class UserConfig:
-    
+
+    ERIKA_CLOUD_HOST = "http://macbook.fritz.box:8080"
     CONF_FILE = 'config/user_config.json'
     WELCOME_FILE = 'config/welcome.txt'
 
@@ -96,7 +98,8 @@ class UserConfig:
 
     async def get_config_io(self, erika:Erika):
         from utils.screen_utils import write_to_screen, show_progress, reset
-        
+        CONFIG_STEPS = 5
+
         reset().show()
         await erika.ask_for_paper()
         
@@ -104,12 +107,13 @@ class UserConfig:
 
         reset().show()
         write_to_screen("Konfiguration", line=2, centered=True)
-        show_progress(0,5)
+        show_progress(0,CONFIG_STEPS)
 
         self.erika_name = await erika.ask("Wie heißt deine Erika?")
-        show_progress(1,5)
+        show_progress(1,CONFIG_STEPS)
         self.email_adress = await erika.ask("Deine Email-Adresse? - Nutze (at)")
-        show_progress(2,5)
+        self.email_adress = self.email_adress.replace('(at)', '@')
+        show_progress(2,CONFIG_STEPS)
         
         # Wlan
         await erika.print_text("--- Wlan Configuration ---")
@@ -129,7 +133,7 @@ class UserConfig:
 
         erika.sender._newline()
         wlan_number_str = await erika.ask("Bitte Nummer des Netwerks eingeben")
-        show_progress(3,5)
+        show_progress(3,CONFIG_STEPS)
         try:
             self.wlan_ssid = wlans[int(wlan_number_str)-1][0] # last 0 is for the tuple
         except IndexError:
@@ -137,21 +141,37 @@ class UserConfig:
             self.wlan_ssid = wlans[int(wlan_number_str)-1][0] # last 0 is for the tuple
 
         self.wlan_password = await erika.ask("Bitte Passwort eingeben")
-        show_progress(3,5)
+        show_progress(3,CONFIG_STEPS)
 
         if do_connect(self.wlan_ssid, self.wlan_password, timeout_sec=10):
-            await erika.print_text("Verbindung mit '{}' hergestellt!".format(self.wlan_ssid))
+            await erika.print_text("Ok: Verbindung mit '{}' hergestellt!".format(self.wlan_ssid))
             self.save()
-            show_progress(5,5)
+            show_progress(5,CONFIG_STEPS)
         else:
             await erika.print_text("Verbindungsfehler - Keine Verbindung mit '{}'.".format(self.wlan_ssid))
             self.wlan_password = await erika.ask("Bitte Passwort wiederholen")
             if do_connect(self.wlan_ssid, self.wlan_password, timeout_sec=10):
-                await erika.print_text("Verbindung mit '{}' hergestellt!".format(self.wlan_ssid))
+                await erika.print_text("Ok: Verbindung mit '{}' hergestellt!".format(self.wlan_ssid))
                 self.save()
 
-        show_progress(5,5)
+        show_progress(5,CONFIG_STEPS)
         erika.sender._newline()
+        
+        typewriter_config = {
+            "firstname" : "",
+            "lastname": "",
+            "erika_name" : self.erika_name,
+            "uuid" : erika.uuid,
+            "email" : self.email_adress,
+            "chat_active" : True
+            }
+        
+        resp = urequests.post(url=self.ERIKA_CLOUD_HOST + '/typewriter', json=typewriter_config)
+        print("Server returned: {}".format(resp.status_code))
+        erika_returned_mail = resp.json()['erika_mail']
+        #todo: make chat un-optable
+        await erika.print_text("Anmeldung an der Cloud erfolgreich.")
+        await erika.print_text("Empfange Emails auf: {}".format(erika_returned_mail.replace('@','(at)')))
         await erika.print_text("Fertig! Starte neu, um Konfiguration zu laden.")
-        from machine import reset
+        #from machine import reset
         reset()
