@@ -281,12 +281,14 @@ class Erika:
             self.erika = erika
             self.action_promt_string = erika.ACTION_PROMT_STRING
 
-        actions = {
+        docs = {
+            "p": "Papiereinzug",
             "hallo": "Print Hallo Welt",
-            "save": "Mail to User",
-            "help": "Prints this info",
-            "typing": "Turn echo ON/OFF",
-            "send": "send as mail"
+            "hilfe": "Diese Hilfe drucken",
+            "typing": "Tastatur ON/OFF",
+            "send": "Gesendete Texte als Email an mich senden",
+            "clear": "Löscht die zwischengespeicherten Texte",
+            "reset": "Setzt alle Einstellungen (z.B. Wifi) zurück und startet neu."
         }
 
         def start_action_promt(self):
@@ -366,15 +368,27 @@ class Erika:
             write_to_screen("Reset: {}".format(result))
             reset()
 
-        def help(self):
-            '''Prints all Controll-Functions'''
-            print('Printing help...')
-
         async def typing(self, is_active):
             '''Typing echo on/off"'''
             print("Typing: {}".format(is_active))
             self.erika.sender.set_keyboard_echo(is_active)
             write_to_screen("Typing: {}".format(is_active))
+
+        async def hilfe(self):
+            parent_class = self
+            method_list = [func for func in dir(parent_class) if \
+                callable(getattr(parent_class, func)) and not func.startswith('_')]
+            print(method_list)
+            help_str = 'Funktionen der Erika.\n\n 3 x Taste REL drücken, Funktion eingeben, dann Enter.\n\n'
+            for method in method_list:
+                if self.docs.get(method):
+                    # ignore all methods we did not document
+                    help_str += ' --- ' + method.upper() + ' ---' + '\n'
+                    help_str += self.docs.get(method) + '\n'
+                    help_str += '\n'
+            
+            await self.erika.print_text(help_str)
+
 
     class Sender:
 
