@@ -1,7 +1,8 @@
+import uuid
 import paho.mqtt.client as mqtt
 import json
 import logging
-from app.model import Textdata
+from app.model import Textdata, Typewriter
 from app.send_email import send_email
 from peewee import IntegrityError
 from datetime import datetime
@@ -20,16 +21,18 @@ class ErikaMqqt:
     # id parameter empty will generate a random id for you.
     self.mqttc = mqtt.Client()
     self.mqttc.on_message = self.on_message
-    # mqttc.on_publish = on_publish
-    self.mqttc.on_subscribe = self.on_subscribe
-    # Uncomment to enable debug messages
-    # self.mqttc.on_log = self.on_log
-    self.mqttc.username_pw_set(mqqt_user, password=mqqt_password)
-    self.mqttc.connect(mqqt_server, 1883, 60)
-    
+  
     # This will make mqttc re-subscribe after re-connect
     self.mqttc.on_connect =self.on_connect
     self.mqttc.on_disconnect =self.on_disconnect
+    self.mqttc.on_subscribe = self.on_subscribe
+
+    # Uncomment to enable debug messages
+    self.mqttc.on_log = self.on_log
+    self.mqttc.username_pw_set(mqqt_user, password=mqqt_password)
+    self.mqttc.connect(mqqt_server, 1883, 60)
+    
+
 
   def on_connect(self, mqttc, userdata, flags, rc, properties=None):
     print("connecting to MQQT....")
@@ -43,32 +46,41 @@ class ErikaMqqt:
     else:
       print(f"Subscription '{str(mid)}' worked!")
 
-  def subscribe(self, subscribe_to="erika/upload", qos=1):
+  def subscribe(self, subscribe_to="erika/#", qos=1):
     self.mqttc.subscribe(subscribe_to, qos)
 
   def run_forever(self):
     self.mqttc.loop_forever()
 
   def on_message(self, mqttc, obj, msg):
-    try:
       data = json.loads(msg.payload)
       logger.info(data)
       
-      # Execute Commands from Erika
-      if "cmd" in data:
-        if data["cmd"] == "email":
-          subject = f'Erika Text {datetime.now().strftime("%d.%m.%Y")}'
-          content = Textdata.as_fulltext(data['hashid'])
-          return send_email(data['from'],data['to'],subject, content)
+      typewriter_id = msg.topic.split('/')[2]
+      msg_type = msg.topic.split('/')[1]
 
-      try:
-        Textdata.create(content=data['line'], hashid=data['hashid'], line_number=data['lnum'])
-      except IntegrityError:
-        logger.info("Already saved line {}".format(data['line']))
-    except ValueError as e:
-      logger.info(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
-  
-    return True
+      logger.info(msg.topic.split('/'))
+
+      if msg_type == "status":
+            logger.info(f"Status of Typewriter {typewriter_id} changed to {msg.payload}")
+            typewriter = Typewriter.get(Typewriter.uuid == typewriter_id )
+            typewriter.status = int(msg.payload)
+            typewriter.save()
+      
+
+      # Execute Commands from Erika
+      if msg_type == "upload":
+        if "cmd" in data:
+          if data["cmd"] == "email":
+            subject = f'Erika Text {datetime.now().strftime("%d.%m.%Y")}'
+            content = Textdata.as_fulltext(data['hashid'])
+            return send_email(data['from'],data['to'],subject, content)
+
+          try:
+            Textdata.create(content=data['line'], hashid=data['hashid'], line_number=data['lnum'])
+          except IntegrityError:
+            logger.info("Already saved line {}".format(data['line']))
+      return True
       
   def on_log(self, mqttc, obj, level, string):
       print(string)
