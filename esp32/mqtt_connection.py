@@ -19,14 +19,15 @@ class ErikaMqqt:
 
     def __init__(self, erika, mqqt_id='erika', erika_id='1'):
         self.uuid = ubinascii.hexlify(machine.unique_id()).decode()
-        self.channel_status = b'{client_id}/{erika_id}/status'.format(client_id=mqqt_id,
+        self.channel_status = b'{client_id}/status/{erika_id}'.format(client_id=mqqt_id,
                                                                       erika_id=self.uuid)  # erika/1/status
-        self.channel_print = b'{client_id}/{erika_id}/print'.format(client_id=mqqt_id,
+        self.channel_print = b'{client_id}/print/{erika_id}'.format(client_id=mqqt_id,
                                                                     erika_id=self.uuid)  # erika/1/print
         
-        self.channel_upload = b'{client_id}/upload'.format(client_id=mqqt_id) # erika/1/upload
+        self.channel_upload = b'{client_id}/upload/{erika_id}'.format(client_id=mqqt_id,  
+                                                                      erika_id=self.uuid) # erika/1/upload
 
-        self.channel_keystrokes = b'{client_id}/{erika_id}/keystrokes'.format(client_id=mqqt_id, erika_id=self.uuid) # erika/1/upload
+        self.channel_keystrokes = b'{client_id}/keystrokes/{erika_id}'.format(client_id=mqqt_id, erika_id=self.uuid) # erika/1/upload
         
         self.erika = erika
         self.mqqt_id = b'{}_{}'.format(mqqt_id, self.uuid)
