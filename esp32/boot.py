@@ -1,21 +1,5 @@
 # boot.py
 
-# Before using please create secrets.py with your credentials:
-
-# MQQT_SERVER = "",
-# MQQT_USERNAME = ""
-# MQQT_PASSWORD = ""
-
-# WLAN_SSID = ""
-# WLAN_PASSWORD = "''"
-
-from secrets import WLAN_SSID, WLAN_PASSWORD
-
-# print("sys loading...")
-# import sys
-# sys.path.reverse()
-
-
 # def scan_wlan(max=5):
 #     import network
 #     wlan = network.WLAN()

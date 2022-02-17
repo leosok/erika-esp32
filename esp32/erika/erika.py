@@ -2,7 +2,7 @@
 
 from erika import char_map
 import time
-from machine import UART, Pin
+from machine import UART, Pin, unique_id, reset
 from erika import erica_encoder_decoder
 import binascii
 import uasyncio as asyncio
@@ -59,7 +59,8 @@ class Erika:
         self.is_printing = False
         self.is_prompting = False
 
-        self.keyboard_echo = False
+        self.keyboard_echo = True
+        self.mqqt_send_keystrokes = False
         
         # page settings
         self.lines_per_page = self.LINES_PER_PAGE['LINE_SPACING_20']
@@ -67,7 +68,7 @@ class Erika:
 
         # this is a way to upload files:
         self.mqqt_client = None
-        self.mqqt_send_keystrokes = True
+        self.uuid = binascii.hexlify(unique_id()).decode()
 
     # async def print_test(self, queue, counter):
     #     while True:
@@ -280,12 +281,14 @@ class Erika:
             self.erika = erika
             self.action_promt_string = erika.ACTION_PROMT_STRING
 
-        actions = {
+        docs = {
+            "p": "Papiereinzug",
             "hallo": "Print Hallo Welt",
-            "save": "Mail to User",
-            "help": "Prints this info",
-            "typing": "Turn echo ON/OFF",
-            "send": "send as mail"
+            "hilfe": "Diese Hilfe drucken",
+            "typing": "Tastatur ON/OFF",
+            "send": "Gesendete Texte als Email an mich senden",
+            "clear": "Löscht die zwischengespeicherten Texte",
+            "reset": "Setzt alle Einstellungen (z.B. Wifi) zurück und startet neu."
         }
 
         def start_action_promt(self):
@@ -363,16 +366,29 @@ class Erika:
             from config.configurator import UserConfig
             result = UserConfig().delete()
             write_to_screen("Reset: {}".format(result))
-
-        def help(self):
-            '''Prints all Controll-Functions'''
-            print('Printing help...')
+            reset()
 
         async def typing(self, is_active):
             '''Typing echo on/off"'''
             print("Typing: {}".format(is_active))
             self.erika.sender.set_keyboard_echo(is_active)
             write_to_screen("Typing: {}".format(is_active))
+
+        async def hilfe(self):
+            parent_class = self
+            method_list = [func for func in dir(parent_class) if \
+                callable(getattr(parent_class, func)) and not func.startswith('_')]
+            print(method_list)
+            help_str = 'Funktionen der Erika.\n\n 3 x Taste REL drücken, Funktion eingeben, dann Enter.\n\n'
+            for method in method_list:
+                if self.docs.get(method):
+                    # ignore all methods we did not document
+                    help_str += ' --- ' + method.upper() + ' ---' + '\n'
+                    help_str += self.docs.get(method) + '\n'
+                    help_str += '\n'
+            
+            await self.erika.print_text(help_str)
+
 
     class Sender:
 
@@ -395,6 +411,11 @@ class Erika:
             byte_data = binascii.unhexlify(data)
             print(byte_data)
             self.erika.uart.write(byte_data)
+
+        def _print_char(self, char):
+            byte_data = self.erika.ddr_2_ascii.encode(char)
+            self.erika.uart.write(byte_data)
+            time.sleep(0.2)
 
         def _print_smiley(self):
             """print a smiley"""
