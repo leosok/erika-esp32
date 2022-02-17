@@ -2,6 +2,7 @@
 from peewee import *
 from datetime import datetime
 from os import path as op
+from playhouse.signals import Model, pre_save
 
 
 db = SqliteDatabase(None)
@@ -57,6 +58,12 @@ class Typewriter(Model):
         database = db
 
 
+@pre_save(sender=Typewriter)
+def on_save_handler(model_class, instance, created):
+    instance.last_seen = datetime.now()
+
+
+
 class Message(Model):
     typewriter = ForeignKeyField(Typewriter, related_name='messages')
     sender = CharField()
@@ -69,6 +76,9 @@ class Message(Model):
 
 def initialize_models():
     db.init(DB_FILE_PATH)
+
+
+
 
 
 if __name__ == '__main__':
