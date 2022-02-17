@@ -1,5 +1,5 @@
 # receiving Emails
-from model import Typewriter
+from erika_cloud.models import Typewriter
 from email.message import EmailMessage
 import smtplib
 from secrets import SMTP_PASSWORD, SMTP_SERVER, SMTP_USER

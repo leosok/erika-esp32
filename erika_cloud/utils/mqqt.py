@@ -1,8 +1,8 @@
 import paho.mqtt.client as mqtt
 import json
 import logging
-from app.model import Textdata
-from app.send_email import send_email
+from erika_cloud.models import Textdata
+from erika_cloud.utils.mail_utils import send_email
 from peewee import IntegrityError
 from datetime import datetime
 
