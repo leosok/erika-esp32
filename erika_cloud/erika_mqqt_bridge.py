@@ -1,11 +1,10 @@
 from secrets import MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD
-import app.model
-import app.mqqt
-
+import utils.mqqt
+from erika_cloud import models
 
 # Create/Open database
-app.model.initialize_models()
+models.initialize_models()
 
-erika_mqqt = app.mqqt.ErikaMqqt(MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD)
+erika_mqqt = utils.mqqt.ErikaMqqt(MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD)
 erika_mqqt.subscribe(subscribe_to="erika/upload", qos=1)
 erika_mqqt.run_forever()

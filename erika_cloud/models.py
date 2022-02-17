@@ -7,7 +7,7 @@ from os import path as op
 db = SqliteDatabase(None)
 DB_FILE = 'erika_data.db'
 PROJECT_DIR = op.dirname(__file__)
-DB_FILE_PATH = op.join(PROJECT_DIR, '..', DB_FILE)
+DB_FILE_PATH = op.join(PROJECT_DIR, '', DB_FILE)
 
 
 class Textdata(Model):
@@ -43,14 +43,15 @@ class Textdata(Model):
 class Typewriter(Model):
     user_firstname = CharField(null = True)
     user_lastname = CharField(null = True)
-    erika_name = CharField(null = True)
+    erika_name = CharField(null = True, unique=True)
     user_email = CharField(null = True)
-    uuid = CharField(null = True)
+    uuid = CharField(null = False, unique=True)
     email = CharField(null = True)
     created_at = DateTimeField(default=datetime.now)
     # Extra-Settings
     status = IntegerField(default=0)
     chat_active = BooleanField(default=1)
+    last_seen = DateTimeField(default=datetime.now)
 
     class Meta:
         database = db

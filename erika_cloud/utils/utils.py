@@ -1,4 +1,4 @@
-# utils for erika bottle app
+# utils for erika bottle utils
 
 import logging
 from dateutil.parser import parse

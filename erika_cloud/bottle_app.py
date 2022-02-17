@@ -1,17 +1,16 @@
-import os
-from bottle import (route, run, hook, view, default_app,
-                    request, redirect, HTTPResponse, static_file, auth_basic)
-import time
 import json
 import logging
-from app.model import db, initialize_models, Textdata, Typewriter, Message
-from app.utils import is_date
-from email.utils import parseaddr
-from playhouse.shortcuts import model_to_dict
+import os
 import os.path as op
-from peewee import DoesNotExist
-from dotenv import load_dotenv
+from email.utils import parseaddr
 
+from bottle import (route, run, hook, view, default_app,
+                    request, redirect, HTTPResponse, static_file, auth_basic)
+from dotenv import load_dotenv
+from peewee import DoesNotExist, IntegrityError
+
+from erika_cloud.models import db, initialize_models, Textdata, Typewriter, Message
+from erika_cloud.utils.utils import is_date
 
 logging.basicConfig()
 logger = logging.getLogger('erika_bottle')
@@ -41,6 +40,21 @@ def send_static(filename):
     return static_file(filename, root=op.join(op.dirname(__file__), 'static'))
 
 
+@route('/')
+@view('main_page_sender.tpl.html')
+def index_sender():
+    typewriters = Typewriter.select().where(Typewriter.status == 1)
+    # emails = typewriter.messages.dicts()
+    print(typewriters)
+
+    return dict(typewriters=typewriters)
+
+
+#####################################################
+##                  PAGES                          ##
+#####################################################
+
+
 @route('/pages')
 @view('all_pages.tpl.html')
 def all():
@@ -62,6 +76,10 @@ def single(hashid):
         return dict(lines=lines, fulltext=Textdata.as_fulltext(hashid))
 
 
+#####################################################
+##                  EMAILS                         ##
+#####################################################
+
 @route('/erika/<uuid>/emails')
 @view('erika_single.tpl.html')
 def erika_single(uuid):
@@ -73,23 +91,13 @@ def erika_single(uuid):
 
 def check_pass(username, password):
     admin_pass = os.getenv("ADMIN_PWD")
-    return username=="admin" and password==admin_pass
-
-
-@route('/')
-@view('main_page_sender.tpl.html')
-def index_sender():
-    typewriters = Typewriter.select().where(Typewriter.status == 1)
-    # emails = typewriter.messages.dicts()
-    print(typewriters)
-
-    return dict(typewriters=typewriters)
+    return username == "admin" and password == admin_pass
 
 
 @route('/erika/<erika_name>')
 @view('erika_single.tpl.html')
 def erika_sender(erika_name):
-    #typewriter = Typewriter.select().where(Typewriter.erika_name == erika_name.lower())
+    # typewriter = Typewriter.select().where(Typewriter.erika_name == erika_name.lower())
     try:
         typewriter = Typewriter.select().where(
             Typewriter.erika_name == erika_name.lower()).get()
@@ -100,6 +108,30 @@ def erika_sender(erika_name):
             return HTTPResponse(status=404, body=f"No messages for typewriter `{erika_name.capitalize()}`")
     except DoesNotExist:
         return HTTPResponse(status=404, body=f"No typewriter found with name `{erika_name.capitalize()}`")
+
+
+#####################################################
+##                  ADMIN                          ##
+#####################################################
+
+@route('/admin/typewriters', method='GET')
+@auth_basic(check_pass)
+@view('model_list.tpl.html')
+def admin_typewriters():
+    typewriters = Typewriter.select().dicts()
+    try:
+        if typewriters.count():
+            logger.info(typewriters)
+            return dict(models=typewriters, is_date=is_date)
+        else:
+            return HTTPResponse(status=404, body=f"No messages for typewriter `{erika_name.capitalize()}`")
+    except DoesNotExist:
+        return HTTPResponse(status=404, body=f"No typewriter found with name `{erika_name.capitalize()}`")
+
+
+#####################################################
+##                  WEBHOOKS                       ##
+#####################################################
 
 
 @route('/incoming', method='POST')
@@ -124,40 +156,48 @@ def incoming_webhook():
     return "ok"
 
 
+#####################################################
+##             TYPEWRITER - API                    ##
+#####################################################
+
 @route('/typewriter', method='POST')
 def register_typewriter():
     data = request.json
 
-    #ToDo if erika_mail is already taken
+    # ToDo if erika_mail is already taken
 
-    typewriter = Typewriter.create(
-        user_firstname=data.get('firstname',''),
-        user_lastname=data.get('lastname',''),
-        erika_name=data.get('erika_name','').lower(),
-        user_email=data.get('email','').lower(),
-        uuid=data.get('uuid'),
-        email=f"{data.get('erika_name','').lower()}@{APP_HOST}",
-        chat_active=data.get('chat_active','')
+    typewriter, created = Typewriter.get_or_create(
+        uuid=data.get('uuid')
     )
 
-    print(f"Created Typewriter: {typewriter}")
+    typewriter.user_firstname = data.get('firstname', '')
+    typewriter.user_lastname = data.get('lastname', '')
+    typewriter.user_email = data.get('email', '').lower()
+    typewriter.uuid = data.get('uuid')
+    typewriter.chat_active = data.get('chat_active', '')
+    typewriter.erika_name = data.get('erika_name', '')
+
+    saved = False
+    i = 1
+    while not saved:
+        try:
+            typewriter.save()
+            saved = True
+        except IntegrityError:
+            # Unique contraint on erika_name, if "berlin" is taken, try "berlin1" etc.
+            i += 1
+            typewriter.erika_name = data.get('erika_name', '') + str(i)
+
+    typewriter.email = f"{typewriter.erika_name}@{APP_HOST}"
+    typewriter.save()
+
+    if created:
+        print(f"Created Typewriter: {typewriter}")
+    else:
+        print(f"Updated Typewriter: {typewriter}")
+
     response = {"erika_mail": typewriter.email}
     return json.dumps(response)
-
-
-@route('/admin/typewriters', method='GET')
-@auth_basic(check_pass)
-@view('model_list.tpl.html')
-def admin_typewriters():
-    typewriters = Typewriter.select().dicts()
-    try:
-        if typewriters.count():
-            logger.info(typewriters)
-            return dict(models=typewriters, is_date=is_date)
-        else:
-            return HTTPResponse(status=404, body=f"No messages for typewriter `{erika_name.capitalize()}`")
-    except DoesNotExist:
-        return HTTPResponse(status=404, body=f"No typewriter found with name `{erika_name.capitalize()}`")
 
 
 initialize_models()
