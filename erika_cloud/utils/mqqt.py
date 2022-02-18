@@ -1,9 +1,12 @@
+# For relative imports to work in Python 3.6
+import sys; sys.path.append("..")
+
 import uuid
 import paho.mqtt.client as mqtt
 import json
 import logging
-from erika_cloud.models import Textdata, Typewriter
-from erika_cloud.utils.mail_utils import send_email
+from models import Textdata, Typewriter
+from utils.mail_utils import send_email
 from peewee import IntegrityError, DoesNotExist
 from datetime import datetime
 

@@ -1,5 +1,8 @@
 # receiving Emails
-from erika_cloud.models import Typewriter
+# For relative imports to work in Python 3.6
+import sys; sys.path.append("..")
+
+from models import Typewriter
 from email.message import EmailMessage
 import smtplib
 from secrets import SMTP_PASSWORD, SMTP_SERVER, SMTP_USER
