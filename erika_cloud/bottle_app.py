@@ -124,7 +124,7 @@ def admin_typewriters():
             logger.info(typewriters)
             return dict(models=typewriters, is_date=is_date)
         else:
-            return HTTPResponse(status=404, body=f"No messages for typewriter `{erika_name.capitalize()}`")
+            return HTTPResponse(status=404, body=f"No typewriters registered")
     except DoesNotExist:
         return HTTPResponse(status=404, body=f"No typewriter found with name `{erika_name.capitalize()}`")
 
