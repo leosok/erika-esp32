@@ -1,12 +1,11 @@
 # For relative imports to work in Python 3.6
 import sys; sys.path.append("..")
-
+from secrets import MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD
 import uuid
 import paho.mqtt.client as mqtt
 import json
 import logging
 from models import Textdata, Typewriter
-from utils.mail_utils import send_email
 from peewee import IntegrityError, DoesNotExist
 from datetime import datetime
 
@@ -16,7 +15,7 @@ logger.setLevel(logging.DEBUG)
 
 class ErikaMqqt:
 
-  def __init__(self, mqqt_server, mqqt_user, mqqt_password):
+  def __init__(self, mqqt_server=MQQT_SERVER, mqqt_user=MQQT_USERNAME, mqqt_password=MQQT_PASSWORD):
     
     # If you want to use a specific client id, use
     # mqttc = mqtt.Client("client-id")

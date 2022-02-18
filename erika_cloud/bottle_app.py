@@ -9,6 +9,7 @@ from bottle import (route, run, hook, view, default_app,
 from dotenv import load_dotenv
 from peewee import DoesNotExist, IntegrityError
 
+from utils.mail_utils import print_on_erika
 from models import db, initialize_models, Textdata, Typewriter, Message
 from utils.utils import is_date
 
@@ -199,6 +200,14 @@ def register_typewriter():
     response = {"erika_mail": typewriter.email}
     return json.dumps(response)
 
+
+@route('/typewriter/<uuid>/print', method='POST')
+def typewriter_print(uuid):
+    """Prints text via MQQR"""
+    logger.info("Printing")
+    typerwiter = Typewriter.get(Typewriter.uuid == uuid)
+    print_on_erika(typerwiter, request.json['body'])
+    return HTTPResponse(status=200, body=f"Printing on `{typerwiter.erika_name.capitalize()}`")
 
 initialize_models()
 db.close()

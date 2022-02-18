@@ -6,8 +6,9 @@ from models import Typewriter
 from email.message import EmailMessage
 import smtplib
 from secrets import SMTP_PASSWORD, SMTP_SERVER, SMTP_USER
+from utils.mqqt import ErikaMqqt
 
-def print_mail_on_erika(erika:Typewriter):
+def print_mail_on_erika(typewriter:Typewriter):
     # Create a german date to print
     import locale
     from email.utils import parsedate_to_datetime
@@ -26,7 +27,13 @@ def print_mail_on_erika(erika:Typewriter):
     ]
 
     print_str = '\n'.join(print_template)
-    erika_mqqt.mqttc.publish('erika/1/print', print_str)
+    print_on_erika(typewriter, print_str)
+
+
+def print_on_erika(typewriter:Typewriter, text:str):
+    erika_mqqt = ErikaMqqt()
+    erika_mqqt.mqttc.publish(f'erika/print/{typewriter.uuid}', text)
+    return True
 
 
 def send_email(mail_from, mail_to, mail_subject, mail_content):

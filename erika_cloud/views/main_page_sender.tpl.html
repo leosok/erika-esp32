@@ -1,35 +1,68 @@
 <html>
 
 <head>
-  
-  <link rel="stylesheet" href="static/css/main_page.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
-<!--  <script src="mqqt_config.js" type="text/javascript"></script>-->
-<!--  <script src="erika_web_client.js" type="text/javascript"></script>-->
+
+    <link href="static/css/main_page.css" rel="stylesheet">
+    <!--  <script src="mqqt_config.js" type="text/javascript"></script>-->
+    <!--  <script src="erika_web_client.js" type="text/javascript"></script>-->
 
 
-  <title>Erika Cloud</title>
+    <title>Erika Cloud</title>
+    <script>
+        function send_text_to_printer() {
+            text = document.getElementById("erika_text").value.trim();
+
+            var select = document.getElementById('typewriters_online');
+            var uuid = select.options[select.selectedIndex].value;
+
+            // Sending and receiving data in JSON format using POST method
+            if (uuid != 0) {
+                var xhr = new XMLHttpRequest();
+                var url = "/typewriter/" + uuid + "/print";
+
+                console.log("printig to " + url)
+
+                xhr.open("POST", url, true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        console.log("Success: " + xhr.responseText);
+                    }
+                };
+                var data = JSON.stringify({"body": text});
+                xhr.send(data);
+            }
+        }
+
+    </script>
+
 </head>
 
 <body>
 
 
-  <div class="header">
+<div class="header">
     <div class="logo_contrainer">
-    <img src="static/img/erika_cloud_logo.gif"/>
-  </div>
+        <img src="static/img/erika_cloud_logo.gif"/>
+    </div>
 </div>
 <div class="content">
-  <p>Status: <span id="status"></span></p>
-  <span>Erika: </span><select name="typewriters_online">
-    %for typeriter in typewriters:
-      <option>{{typeriter.erika_name}} ({{typeriter.user_firstname}})</option>
-    %end
-  </select>
-  <textarea id="erika_text" placeholder="Tell me lies..."></textarea>
-  <br />
-  <button id="print_button" type="submit" onclick="send_mqtt_msg(client, 'erika/1/print')">Drucken</button>
-  <!-- <button type="submit" onclick="send_mqtt_msg(client, 'erika/1/show')">Anzeigen</button> -->
+<!--    <p>Status: <span id="status"></span></p>-->
+    <span>Erika: </span>
+        %if typewriters:
+        <select id="typewriters_online" name="typewriters_online">
+          %for typeriter in typewriters:
+            <option value={{typeriter.uuid}}>{{typeriter.erika_name}} ({{typeriter.user_firstname}})</option>
+          %end
+        %else:
+          <select id="typewriters_online" name="typewriters_online" disabled>
+           <option value="0">Keine Erikas online</option>
+        %end
+    </select>
+    <textarea id="erika_text" placeholder="Tell me lies..."></textarea>
+    <br/>
+    <button id="print_button" onclick="send_text_to_printer()" type="submit">Drucken</button>
+    <!-- <button type="submit" onclick="send_mqtt_msg(client, 'erika/1/show')">Anzeigen</button> -->
 </div>
 </body>
 
