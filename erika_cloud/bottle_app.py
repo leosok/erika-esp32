@@ -9,8 +9,8 @@ from bottle import (route, run, hook, view, default_app,
 from dotenv import load_dotenv
 from peewee import DoesNotExist, IntegrityError
 
-from erika_cloud.models import db, initialize_models, Textdata, Typewriter, Message
-from erika_cloud.utils.utils import is_date
+from models import db, initialize_models, Textdata, Typewriter, Message
+from utils.utils import is_date
 
 logging.basicConfig()
 logger = logging.getLogger('erika_bottle')
