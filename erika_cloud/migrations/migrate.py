@@ -1,8 +1,11 @@
+# For relative imports to work in Python 3.6
+import sys; sys.path.append("..")
+
 from playhouse.migrate import *
-from erika_cloud.models import DB_FILE_PATH
+import models
 from datetime import datetime
 
-db = SqliteDatabase(DB_FILE_PATH)
+db = SqliteDatabase(models.DB_FILE_PATH)
 migrator = SqliteMigrator(db)
 
 def add_last_seen():
