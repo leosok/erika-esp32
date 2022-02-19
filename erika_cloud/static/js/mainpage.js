@@ -21,7 +21,7 @@ function send_text_to_printer() {
                 xhr.setRequestHeader("Content-Type", "application/json");
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState === 4 && xhr.status === 200) {
-                        console.log("Success: " + xhr.responseText);
+                        //console.log("Success: " + xhr.responseText);
                     }
                 };
                 var data = JSON.stringify({"body": text});
