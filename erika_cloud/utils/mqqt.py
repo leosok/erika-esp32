@@ -30,7 +30,7 @@ class ErikaMqqt:
     self.mqttc.on_subscribe = self.on_subscribe
 
     # Uncomment to enable debug messages
-    self.mqttc.on_log = self.on_log
+    # self.mqttc.on_log = self.on_log
     self.mqttc.username_pw_set(mqqt_user, password=mqqt_password)
     self.mqttc.connect(mqqt_server, 1883, 60)
     
@@ -39,16 +39,17 @@ class ErikaMqqt:
   def on_connect(self, mqttc, userdata, flags, rc, properties=None):
     print("connecting to MQQT....")
     print("(Re-)subscribing")
+    print("Connected with result code " + str(rc))
     self.subscribe()
 
   def on_subscribe(self, mqqtc, userdata, mid, rc):
-    print("Subscribing....")
-    if rc != 0:
+    if rc[0] == 0:
       print(f"Could not subscribe: '{str(mid)}'")
     else:
       print(f"Subscription '{str(mid)}' worked!")
 
   def subscribe(self, subscribe_to="erika/#", qos=1):
+    print("Subscribing....")
     self.mqttc.subscribe(subscribe_to, qos)
 
   def run_forever(self):
