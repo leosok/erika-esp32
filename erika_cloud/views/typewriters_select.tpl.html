@@ -1,0 +1,10 @@
+    %if typewriters:
+        <select id="typewriters_online" name="typewriters_online">
+          %for typeriter in typewriters:
+            <option value={{typeriter.uuid}}>{{typeriter.erika_name}} ({{typeriter.user_firstname}})</option>
+          %end
+        %else:
+          <select id="typewriters_online" name="typewriters_online" disabled>
+           <option value="0">Keine Erikas online</option>
+        %end
+    </select>

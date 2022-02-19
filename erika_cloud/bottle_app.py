@@ -209,6 +209,13 @@ def typewriter_print(uuid):
     print_on_erika(typerwiter, request.json['body'])
     return HTTPResponse(status=200, body=f"Printing on `{typerwiter.erika_name.capitalize()}`")
 
+@route('/typewriters/online', method='GET')
+@view('typewriters_select.tpl.html')
+def typewriters_online():
+    typewriters = Typewriter.select().where(Typewriter.status == 1)
+    return dict(typewriters=typewriters)
+
+
 initialize_models()
 db.close()
 application = default_app()

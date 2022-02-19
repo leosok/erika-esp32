@@ -3,36 +3,13 @@
 <head>
 
     <link href="static/css/main_page.css" rel="stylesheet">
-    <!--  <script src="mqqt_config.js" type="text/javascript"></script>-->
+    <script src="static/js/mainpage.js" type="text/javascript"></script>
     <!--  <script src="erika_web_client.js" type="text/javascript"></script>-->
 
 
     <title>Erika Cloud</title>
     <script>
-        function send_text_to_printer() {
-            text = document.getElementById("erika_text").value.trim();
 
-            var select = document.getElementById('typewriters_online');
-            var uuid = select.options[select.selectedIndex].value;
-
-            // Sending and receiving data in JSON format using POST method
-            if (uuid != 0) {
-                var xhr = new XMLHttpRequest();
-                var url = "/typewriter/" + uuid + "/print";
-
-                console.log("printig to " + url)
-
-                xhr.open("POST", url, true);
-                xhr.setRequestHeader("Content-Type", "application/json");
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState === 4 && xhr.status === 200) {
-                        console.log("Success: " + xhr.responseText);
-                    }
-                };
-                var data = JSON.stringify({"body": text});
-                xhr.send(data);
-            }
-        }
 
     </script>
 
