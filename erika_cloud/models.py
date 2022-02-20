@@ -2,8 +2,7 @@
 from peewee import *
 from datetime import datetime
 from os import path as op
-from playhouse.signals import Model, pre_save
-
+from playhouse.signals import Model, pre_save, post_save
 
 db = SqliteDatabase(None)
 DB_FILE = 'erika_data.db'
@@ -57,11 +56,17 @@ class Typewriter(Model):
     class Meta:
         database = db
 
+    def print_mails(self):
+        messages = self.messages
+        from utils.mail_utils import print_mail_on_erika
+        if messages:
+            for m in messages:
+                print_mail_on_erika(m)
+
 
 @pre_save(sender=Typewriter)
 def on_save_handler(model_class, instance, created):
     instance.last_seen = datetime.now()
-
 
 
 class Message(Model):
@@ -71,14 +76,19 @@ class Message(Model):
     body = TextField()
     received_at = DateTimeField(default=datetime.now)
 
+
     class Meta:
         database = db
 
+@post_save(sender=Message)
+def on_save_handler(model_class, instance, created):
+    if instance.typewriter.status == 1:
+        from utils.mail_utils import print_mail_on_erika
+        print_mail_on_erika(instance)
+
+
 def initialize_models():
     db.init(DB_FILE_PATH)
-
-
-
 
 
 if __name__ == '__main__':
