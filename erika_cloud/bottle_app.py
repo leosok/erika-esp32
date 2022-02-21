@@ -146,7 +146,7 @@ def incoming_webhook():
 
     receiver_name, receiver_email = parseaddr(data['headers']['to'])
     sender_name, sender_email = parseaddr(data['headers']['from'])
-    erika = Typewriter.select().where(Typewriter.email == receiver_email)
+    erika = Typewriter.select().where(Typewriter.email == receiver_email.lower())
     if not erika:
         return HTTPResponse(status=404, body=f"No Typewriter found for adress {receiver_email}")
 
@@ -180,7 +180,7 @@ def register_typewriter():
     typewriter.user_email = data.get('email', '').lower()
     typewriter.uuid = data.get('uuid')
     typewriter.chat_active = data.get('chat_active', '')
-    typewriter.erika_name = data.get('erika_name', '')
+    typewriter.erika_name = data.get('erika_name', '').lower()
 
     saved = False
     i = 1
@@ -193,7 +193,7 @@ def register_typewriter():
             i += 1
             typewriter.erika_name = data.get('erika_name', '') + str(i)
 
-    typewriter.email = f"{typewriter.erika_name}@{APP_HOST}"
+    typewriter.email = f"{typewriter.erika_name.lower()}@{APP_HOST}"
     typewriter.save()
 
     if created:

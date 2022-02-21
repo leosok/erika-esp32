@@ -86,7 +86,8 @@ class Message(Model):
 def on_save_handler(model_class, instance, created):
     if instance.typewriter.status == 1:
         from utils.mail_utils import print_mail_on_erika
-        print_mail_on_erika(instance)
+        if not instance.is_printed:
+            print_mail_on_erika(instance)
 
 
 def initialize_models():
