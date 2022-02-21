@@ -129,6 +129,20 @@ def admin_typewriters():
     except DoesNotExist:
         return HTTPResponse(status=404, body=f"No typewriter found with name `{erika_name.capitalize()}`")
 
+@route('/admin/messages', method='GET')
+@auth_basic(check_pass)
+@view('model_list.tpl.html')
+def admin_typewriters():
+    messages = Message.select().dicts()
+    try:
+        if messages.count():
+            logger.info(messages)
+            return dict(models=messages, is_date=is_date)
+        else:
+            return HTTPResponse(status=404, body=f"No messages registered")
+    except DoesNotExist:
+        return HTTPResponse(status=404, body=f"No messages found.")
+
 
 #####################################################
 ##                  WEBHOOKS                       ##
