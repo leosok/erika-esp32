@@ -2,6 +2,7 @@
 import sys; sys.path.append("..")
 
 from playhouse.migrate import *
+from peewee import BooleanField
 import models
 from datetime import datetime
 
@@ -14,12 +15,21 @@ def add_last_seen():
         migrator.add_column('typewriter', 'last_seen', last_seen_field)
     )
 
+def add_is_printed():
+    is_printed_field = BooleanField(default=False)
+    migrate(
+        migrator.add_column('message', 'is_printed', is_printed_field)
+    )
+
+
+
 if __name__ == '__main__':
 
     migrations = [
         "add_last_seen",
         "migrate(migrator.add_index('typewriter', ('uuid', ), unique=True))",
-        "migrate(migrator.add_index('typewriter', ('erika_name', ), unique=True))"
+        "migrate(migrator.add_index('typewriter', ('erika_name', ), unique=True))",
+        "add_is_printed"
     ]
 
     for m in migrations:

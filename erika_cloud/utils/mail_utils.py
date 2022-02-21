@@ -33,6 +33,8 @@ def print_mail_on_erika(message: Message):
             "{}".format(message.body)
         ]
 
+    message.is_printed = True
+    message.save()
     print_str = '\n'.join(print_template)
     print_on_erika(typewriter, print_str)
 

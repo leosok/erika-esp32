@@ -61,7 +61,8 @@ class Typewriter(Model):
         from utils.mail_utils import print_mail_on_erika
         if messages:
             for m in messages:
-                print_mail_on_erika(m)
+                if not m.is_printed:
+                    print_mail_on_erika(m)
 
 
 @pre_save(sender=Typewriter)
@@ -75,6 +76,7 @@ class Message(Model):
     subject = CharField()
     body = TextField()
     received_at = DateTimeField(default=datetime.now)
+    is_printed = BooleanField(default=False)
 
 
     class Meta:
