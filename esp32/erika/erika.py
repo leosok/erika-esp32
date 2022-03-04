@@ -19,6 +19,9 @@ class Erika:
     DEFAULT_DELAY = 0.02
     RTS_PIN = 22
     CTS_PIN = 21
+    RX_PIN = 5
+    TX_PIN = 17
+
     TEMP_LINES_FILE = "saved_lines.txt"
     
     # Using an Array for ACTION_PROMT_STRING, because Char does not work with REL
@@ -34,7 +37,7 @@ class Erika:
         }
     CHAR_SPACING = 0 # 0 = 10, 1 = 12 on the slider
 
-    def __init__(self):
+    def __init__(self, rts_pin=RTS_PIN, cts_pin=CTS_PIN):
         # line_buffer will be filled until "Return" is hit
         self.input_line_buffer = ''
         # lines_buffer will save the whole texte before doing sth with it.
@@ -43,10 +46,10 @@ class Erika:
         self.uart = self.start_uart()
         self.ddr_2_ascii = erica_encoder_decoder.DDR_ASCII()
         # It is important to PULL_DOWN the RTS_PIN, to get a reading! (0=OK, 1=busy, please wait)
-        self.rts = Pin(Erika.RTS_PIN)
+        self.rts = Pin(rts_pin)
         self.rts.init(self.rts.IN, self.rts.PULL_DOWN)
         # Without CTS to low, Erika will not send data
-        cts = Pin(Erika.CTS_PIN, Pin.OUT)
+        cts = Pin(cts_pin, Pin.OUT)
         cts.off
 
         self.sender = self.Sender(self)
@@ -168,7 +171,7 @@ class Erika:
             self.line_on_page = 0
             print('printer done for now')
 
-    def start_uart(self, rx=5, tx=17, baud=1200):
+    def start_uart(self, rx=RX_PIN, tx=TX_PIN, baud=1200):
         uart = UART(2, baud)
         uart.init(baud, bits=8, parity=None, stop=1, rx=rx, tx=tx)
         print("uart started")

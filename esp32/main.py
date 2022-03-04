@@ -4,10 +4,13 @@ print("main.py: Hello")
 # putting this up front to speed up
 from utils.misc import status_led
 import utils.screen_utils as screen
+from config import UserConfig, BoardConfig
+
+board_config = BoardConfig()
 
 status_led(False)
 print("starting screen...")
-screen.starting()
+screen.starting(display_type=board_config.screen_display_type)
 #screen.show_qr_code()
 
 
@@ -20,7 +23,6 @@ import network
 import machine
 
 from utils.network_utils import do_connect, scan_wlan
-from config import UserConfig
 
 
 async def wlan_strength(user_config:UserConfig, max=5):
@@ -59,8 +61,10 @@ def set_time():
 #  ***      START       ***   #
 ###############################
 
-erika = Erika()
+
+erika = Erika(cts_pin=board_config.erika_cts, rts_pin=board_config.erika_rts)
 user_config = UserConfig()
+
 
 # Here we have to xcheck, if a configuration is present.
 # If not, we need ot gather data from the user.

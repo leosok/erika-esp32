@@ -1,5 +1,5 @@
 {
-    "python.linting.enabled": true,
+    "python.linting.enabled": false,
     "python.jediEnabled": false,
     "python.autoComplete.extraPaths": [
         ".micropy\\BradenM-micropy-stubs-3cc928b\\frozen",
@@ -27,5 +27,5 @@
         ".micropy\\esp32"
     ],
     "python.linting.flake8Enabled": false,
-    "python.languageServer": "Jedi"
+    "python.languageServer": "Pylace"
 }

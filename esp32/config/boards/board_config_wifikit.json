@@ -1,0 +1,16 @@
+{
+    "__board_name":"WIFI_KIT",
+    "__use":"Copy this file to config/board_config.json",
+
+    "__comment":"This file will not be synchronized by Pymakr",
+
+    "erika_rts" : 22,
+    "erika_cts" : 21,
+    "erika_rx" : 5,
+    "erika_tx" : 17,
+    
+    "screen_display_type": "WIFI_KIT",
+    "screen_rst" : 16,
+    "screen_scl" : 15,
+    "screen_sda" : 4
+}

@@ -1,10 +1,10 @@
-import os
+import os 
 import json
+import uasyncio as asyncio  # pylint: disable=import-error
+import urequests  # pylint: disable=import-error
+import machine  # pylint: disable=import-error
 from erika import Erika
 from utils.network_utils import scan_wlan, get_wlan_strength, do_connect
-import uasyncio as asyncio
-import urequests
-import machine
 
 class MqqtConfig:
 
@@ -14,6 +14,42 @@ class MqqtConfig:
         self.MQQT_SERVER = None
         self.MQQT_USERNAME = None
         self.MQQT_PASSWORD = None
+        
+        self.load()
+        
+    def load(self):
+        """
+        Loads config from JSON
+        Returns: dict or False (if config_file cannot be opend)
+        """
+        try:
+            with open(self.CONF_FILE, 'r') as f:
+                data = json.load(f)
+            for k,v in data.items():
+                setattr(self,k,v)
+        except:
+            return False
+
+    def __repr__(self):
+        return str(self.__dict__)
+
+
+class BoardConfig:
+    """
+    Loads config from JSON (which is not)
+    Returns: dict or False (if config_file cannot be opend)
+    """
+    
+    CONF_FILE = 'config/board_config.json'
+
+    def __init__(self):
+        self.erika_rts = None
+        self.erika_cts = None
+        
+        self.screen_display_type = None
+        self.screen_rst = None
+        self.screen_scl = None
+        self.screen_sda = None
         
         self.load()
 
@@ -31,7 +67,8 @@ class MqqtConfig:
             return False
 
     def __repr__(self):
-        return self.__dict__
+        return str(self.__dict__)
+
 
 class UserConfig:
 
@@ -51,7 +88,7 @@ class UserConfig:
         self.load()
 
     def __repr__(self):
-        return self.__dict__
+        return str(self.__dict__)
         
     def save(self):
         """
@@ -142,7 +179,7 @@ class UserConfig:
         show_progress(5,CONFIG_STEPS)
         try:
             self.wlan_ssid = wlans[int(wlan_number_str)-1][0] # last 0 is for the tuple
-        except IndexError:
+        except IndexError: # type: ignore
             wlan_number_str = await erika.ask("'{}' ungültig. Bitte Nummer des Netwerks eingeben".format(wlan_number_str))
             self.wlan_ssid = wlans[int(wlan_number_str)-1][0] # last 0 is for the tuple
 

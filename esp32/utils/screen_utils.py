@@ -1,6 +1,6 @@
 # screen_utils.py
 
-from machine import SoftI2C, Pin 
+from machine import SoftI2C, Pin
 import time
 
 class DisplayType:
@@ -46,8 +46,9 @@ def network(ip=False, strength=False):
   oled.text(str(round(time.ticks_ms()/1000)), 0, 40)
   oled.show()
 
-def starting():
-  oled = inizilize()
+def starting(display_type = "D_DUINO"):
+  display_type_enum = getattr(DisplayType, display_type)
+  oled = inizilize(display_type=display_type_enum)
   oled = reset(5)
   write_to_screen('Erika loading...', line=1, centered=True)
 
