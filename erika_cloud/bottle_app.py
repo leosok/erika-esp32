@@ -4,6 +4,7 @@ import os
 import os.path as op
 from email.utils import parseaddr
 
+import peewee
 from bottle import (route, run, hook, view, default_app,
                     request, redirect, HTTPResponse, static_file, auth_basic)
 from dotenv import load_dotenv
@@ -115,19 +116,22 @@ def erika_sender(erika_name):
 ##                  ADMIN                          ##
 #####################################################
 
-@route('/admin/typewriters', method='GET')
+@route('/admin/<model_name>', method='GET')
 @auth_basic(check_pass)
 @view('model_list.tpl.html')
-def admin_typewriters():
-    typewriters = Typewriter.select().dicts()
+def admin_models(model_name):
     try:
-        if typewriters.count():
-            logger.info(typewriters)
-            return dict(models=typewriters, is_date=is_date)
+        if model_name.endswith('s'):
+            model_name = model_name[:-1]
+        model = globals()[model_name.capitalize()]
+        models = model.select().dicts()
+        if models.count():
+            logger.info(models)
+            return dict(models=models, is_date=is_date)
         else:
-            return HTTPResponse(status=404, body=f"No typewriters registered")
-    except DoesNotExist:
-        return HTTPResponse(status=404, body=f"No typewriter found with name `{erika_name.capitalize()}`")
+            return HTTPResponse(status=404, body=f"No {model_name} registered")
+    except (DoesNotExist, KeyError):
+        return HTTPResponse(status=404, body=f"No table named `{model_name}` exists")
 
 
 #####################################################
@@ -142,7 +146,7 @@ def incoming_webhook():
 
     receiver_name, receiver_email = parseaddr(data['headers']['to'])
     sender_name, sender_email = parseaddr(data['headers']['from'])
-    erika = Typewriter.select().where(Typewriter.email == receiver_email)
+    erika = Typewriter.select().where(Typewriter.email == receiver_email.lower())
     if not erika:
         return HTTPResponse(status=404, body=f"No Typewriter found for adress {receiver_email}")
 
@@ -176,7 +180,7 @@ def register_typewriter():
     typewriter.user_email = data.get('email', '').lower()
     typewriter.uuid = data.get('uuid')
     typewriter.chat_active = data.get('chat_active', '')
-    typewriter.erika_name = data.get('erika_name', '')
+    typewriter.erika_name = data.get('erika_name', '').lower()
 
     saved = False
     i = 1
@@ -189,7 +193,7 @@ def register_typewriter():
             i += 1
             typewriter.erika_name = data.get('erika_name', '') + str(i)
 
-    typewriter.email = f"{typewriter.erika_name}@{APP_HOST}"
+    typewriter.email = f"{typewriter.erika_name.lower()}@{APP_HOST}"
     typewriter.save()
 
     if created:

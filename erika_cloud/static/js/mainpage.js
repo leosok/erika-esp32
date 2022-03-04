@@ -1,6 +1,7 @@
 
 
 document.addEventListener("DOMContentLoaded", function(event) {
+    setTimeout(reload_online_typewriters, 1000)
     setInterval(reload_online_typewriters, 5000)
 });
 
@@ -36,10 +37,19 @@ function reload_online_typewriters(){
         xhr.open("GET", url, true);
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4 && xhr.status === 200) {
-                console.log("Success: " + xhr.responseText);
                 // Replace content of select:
-                document.getElementById("typewriters_online")
-                    .outerHTML = xhr.responseText
+                var select_field = document.getElementById("typewriters_online")
+                if ( xhr.responseText.trim().replace(/"/g, "") !=
+                    select_field.outerHTML.trim().replace(/"/g, "") ) {
+                    select_field.outerHTML = xhr.responseText
+                    count_before_update = select_field.outerHTML.match(/<option/g).length
+                    count_after_update = xhr.responseText.match(/<option/g).length
+                    console.log("Online typewriters updated " + count_before_update + "->" + count_after_update)
+                    // console.log(xhr.responseText.trim().replace(/"/g, ""))
+                    // console.log(select_field.outerHTML.trim().replace(/"/g, ""))
+                } else {
+                    console.log("Typewriter count did not change")
+                }
             }
         };
         xhr.send(null);
