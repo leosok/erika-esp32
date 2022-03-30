@@ -10,7 +10,10 @@ board_config = BoardConfig()
 
 status_led(False)
 print("starting screen...")
-screen.starting(display_type=board_config.screen_display_type)
+screen = screen.Screen(board_type=board_config.screen_display_type)
+screen.write_to_screen("starting...")
+
+# screen.starting(display_type=board_config.screen_display_type)
 #screen.show_qr_code()
 
 
@@ -61,8 +64,12 @@ def set_time():
 #  ***      START       ***   #
 ###############################
 
+erika = Erika(cts_pin=board_config.erika_cts, 
+        rts_pin=board_config.erika_rts, 
+        tx_pin=board_config.erika_tx,  
+        rx_pin=board_config.erika_rx,  
+        screen=screen)
 
-erika = Erika(cts_pin=board_config.erika_cts, rts_pin=board_config.erika_rts)
 user_config = UserConfig()
 
 

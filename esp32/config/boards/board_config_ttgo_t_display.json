@@ -1,0 +1,20 @@
+{
+    "__board_name":"TTGO_T_DISPLAY",
+    "__use":"Copy this file to config/board_config.json",
+
+    "__comment":"This file will not be synchronized by Pymakr",
+
+    "erika_rts" : 27,
+    "erika_cts" : 26,
+    "erika_rx" : 32,
+    "erika_tx" : 33,
+    
+    "screen_display_type": "TTGO_T_DISPLAY",
+
+    "_sck": 18,
+    "_mosi": 19,
+    "_miso": 2,
+    "_cs":5,
+    "_reset":23,
+    "_dc":16
+}

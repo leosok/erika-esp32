@@ -7,7 +7,6 @@ from erika import erica_encoder_decoder
 import binascii
 import uasyncio as asyncio
 from lib.primitives.queue import Queue
-from utils.screen_utils import write_to_screen
 # from utils.umailgun import Mailgun, CONFIG_MY_EMAIL, MAILGUN_API_KEY, MAILGUN_API_URL
 
 # For more stuff see:
@@ -37,13 +36,13 @@ class Erika:
         }
     CHAR_SPACING = 0 # 0 = 10, 1 = 12 on the slider
 
-    def __init__(self, rts_pin=RTS_PIN, cts_pin=CTS_PIN):
+    def __init__(self, rts_pin=RTS_PIN, cts_pin=CTS_PIN, rx_pin=RX_PIN, tx_pin=TX_PIN, screen = None):
         # line_buffer will be filled until "Return" is hit
         self.input_line_buffer = ''
         # lines_buffer will save the whole texte before doing sth with it.
         self.input_lines_buffer = []
 
-        self.uart = self.start_uart()
+        self.uart = self.start_uart(rx=rx_pin, tx=tx_pin)
         self.ddr_2_ascii = erica_encoder_decoder.DDR_ASCII()
         # It is important to PULL_DOWN the RTS_PIN, to get a reading! (0=OK, 1=busy, please wait)
         self.rts = Pin(rts_pin)
@@ -72,6 +71,9 @@ class Erika:
         # this is a way to upload files:
         self.mqqt_client = None
         self.uuid = binascii.hexlify(unique_id()).decode()
+
+        # for using screen
+        self.screen = screen
 
     # async def print_test(self, queue, counter):
     #     while True:
