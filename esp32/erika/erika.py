@@ -230,8 +230,8 @@ class Erika:
         """
         self.sender.alarm()
         #self.sender.set_keyboard_echo(False)
-        write_to_screen("Papier einlegen", line=3, centered=True)
-        write_to_screen(" und ENTER", line=4, centered=True)   
+        self.screen.write_to_screen("Papier einlegen", line=3, centered=True)
+        self.screen.write_to_screen(" und ENTER", line=4, centered=True)   
         self.is_prompting = True
         await self.ask("",only_enter=True) # just wait for the Enter
         self.line_on_page = 0
@@ -297,7 +297,7 @@ class Erika:
         }
 
         def start_action_promt(self):
-            write_to_screen("Enter Action")
+            self.erika.screen.write_to_screen("Enter Action")
             self.erika.sender.alarm()
             self.erika.sender.set_keyboard_echo(False)
             self.erika.mqqt_send_keystrokes = False
@@ -310,7 +310,7 @@ class Erika:
                 control_string = input[-len(input) + c_string_start:]
                 # Keyboard was off for "start_action_promt", set it back to original state
                 self.erika.sender.set_keyboard_echo(self.erika.keyboard_echo)
-                write_to_screen("Action: {}".format(control_string))
+                self.erika.screen.write_to_screen("Action: {}".format(control_string))
                 self.action(control_string)
             else:
                 return False
@@ -346,7 +346,7 @@ class Erika:
         async def keycast(self, is_active):
             '''Send every key typed to MQQT'''
             self.erika.mqqt_send_keystrokes = is_active
-            write_to_screen("Keycast: {}".format(is_active))
+            self.screen.write_to_screen("Keycast: {}".format(is_active))
 
         async def hallo(self):
             info = '''Prints a "hello"'''
@@ -364,20 +364,20 @@ class Erika:
             '''resets the temp file'''
             # this last line has the ;;:save command
             open(self.erika.TEMP_LINES_FILE, "w").close()
-            write_to_screen("Tempfile clear.")
+            self.erika.screen.write_to_screen("Tempfile clear.")
 
         async def reset(self):
             '''deletes User-config of this Erika'''
             from config.configurator import UserConfig
             result = UserConfig().delete()
-            write_to_screen("Reset: {}".format(result))
+            self.erika.screen.write_to_screen("Reset: {}".format(result))
             reset()
 
         async def typing(self, is_active):
             '''Typing echo on/off"'''
             print("Typing: {}".format(is_active))
             self.erika.sender.set_keyboard_echo(is_active)
-            write_to_screen("Typing: {}".format(is_active))
+            self.erika.screen.write_to_screen("Typing: {}".format(is_active))
 
         async def hilfe(self):
             parent_class = self

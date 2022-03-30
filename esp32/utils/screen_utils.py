@@ -140,14 +140,16 @@ class Screen:
   def show_progress(self, progress=0, max=100, line=5):
     if self.display_type == DisplayType.OLED:
       oled = self.display
-    
-    oled.fill_rect(0, line*10, oled.width, 10, 0)
-    margin = 10
-    current_width = round((oled.width-margin) / max * progress)
-    oled.rect(margin, 50, oled.width-margin, 5, 50) # outer rect
-    oled.fill_rect(margin, 50, current_width, 5, 50) # filling
-    oled.rect(margin, 50, oled.width-margin, 5, 50) # outer rect
-    oled.show()
+        
+      oled.fill_rect(0, line*10, oled.width, 10, 0)
+      margin = 10
+      current_width = round((oled.width-margin) / max * progress)
+      oled.rect(margin, 50, oled.width-margin, 5, 50) # outer rect
+      oled.fill_rect(margin, 50, current_width, 5, 50) # filling
+      oled.rect(margin, 50, oled.width-margin, 5, 50) # outer rect
+      oled.show()
+    elif self.display_type == DisplayType.TFT:
+      print("ToDo: Showprogress on TFT")
 
 
   # class Display:
