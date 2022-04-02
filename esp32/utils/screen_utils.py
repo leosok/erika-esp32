@@ -1,7 +1,8 @@
 # screen_utils.py
 
-from machine import SoftI2C, SoftSPI, Pin
+from machine import SoftI2C, SoftSPI, Pin, sleep
 import time
+import gc
 
 
 
@@ -85,6 +86,30 @@ class Screen:
                 random.getrandbits(8),
             )
 
+  def splash_screen(self, text="starting...", reset=False):
+    if self.display_type == DisplayType.TFT:
+          #import vga1_8x8 as font 
+      import meteo as font 
+      from st7789 import WHITE
+      print("splashscreen: " + text)
+
+      # import scriptc as font
+      if reset:
+        tft=self.get_tft()
+      else:
+        tft=self.display
+      tft.draw(font,"Erika",65,50, WHITE, 1.5)
+      tft.draw(font,"electronic",65,85, WHITE, 0.8)
+
+  def work_on_tft(self):
+        from st7789 import BLUE
+        self.splash_screen(reset=True)
+        sleep(3)
+        self.display.fill(BLUE)
+        for i in range(1,5):
+              self.write_to_screen(f"{i}: HALLO", line=i)
+
+
 
   def write_to_screen(self, text, margin=20, line=5, centered=False, font=None, reset=False):
     if self.display_type == DisplayType.OLED:
@@ -98,10 +123,14 @@ class Screen:
           margin = empty_width 
       oled.text(text, margin, line*10)      
       oled.show()
+    
     elif self.display_type == DisplayType.TFT:
-      #import vga1_8x8 as font 
-      import meteo as font 
-      from st7789 import WHITE
+      import romand as font 
+      # import meteo as font 
+      from st7789 import WHITE, BLACK
+      BG_COLOR = BLACK
+      scale = 0.65
+      font_max_height = 32
       print("write_to_screen: " + text)
 
       # import scriptc as font
@@ -109,22 +138,26 @@ class Screen:
         tft=self.get_tft()
       else:
         tft=self.display
-      tft.draw(font,"Erika",65,50, 31, 1.5)
-      # tft.draw(font,"electronic",65,85, WHITE, 0.8)
-      tft.draw(font,text,65,85, self.get_random_color(), 0.8)
 
+      # Display has 4 Lines now.
+      import math
+      padding = 5
+      line_height =  math.ceil(font_max_height * scale) + padding
+      print(f"line_height: {line_height}")
+      line_y = padding + line_height * (line - 1)
+      print(f"line: {line}; line_y: {line_y}")
+      text_x = 5 # use this for centering!
+      
+      tft.fill_rect(0,line_y + (2*padding), tft.width(), line_height, BG_COLOR)
+      tft.draw(font, text, text_x, line_y + line_height, self.get_random_color(),scale)
+      gc.collect()
 
   def network(self, ip=False, strength=False):
-    # if self.display_type == DisplayType.OLED:
-    #       oled = self.display
-    # self.reset()
-    # oled.text('Erika', 45, 5)
-    # if ip:
-    #   oled.text(ip,0,20)
-    # if strength:
-    #   oled.text(str(strength), 0, 30)
-    # oled.text(str(round(time.ticks_ms()/1000)), 0, 40)
-    # oled.show()
+    if ip:
+      self.write_to_screen(ip,line=2)
+    if strength:
+      self.write_to_screen(str(strength),line=3)
+    self.text(str(round(time.ticks_ms()/1000)))
     pass
 
   # def starting(self, display_type = "D_DUINO"):
