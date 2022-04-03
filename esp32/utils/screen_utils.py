@@ -112,8 +112,9 @@ class Screen:
         # self.splash_screen(reset=True)
         # sleep(3)
         # self.display.fill(BLUE)
-        for i in range(1,6):
-              self.write_to_screen(f"HALLO", centered=True,line=i)
+        # for i in range(1,6):
+        #       self.write_to_screen(f"HALLO", centered=True,line=i)
+        self.show_image("config",20,80)
         # for i in range(0,101):
         #     self.show_progress(i)
       
@@ -121,6 +122,9 @@ class Screen:
         #   self.show_progress(i)
 
 
+  def show_image(self, name, x=0, y=0):
+
+      self.display.jpg(f"res/{name}.jpg", x, y) #jpg(jpg_filename, x, y [, method])
 
 
   def _get_line(self, line, font_max_height, scale):
