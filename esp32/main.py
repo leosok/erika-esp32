@@ -83,10 +83,10 @@ if user_config.load():
     erika_mqqt = ErikaMqqt(erika=erika)
     erika.mqqt_client = erika_mqqt
     screen.write_to_screen("Erika",line=1,reset=True)
-    # asyncio.run(
-    #     start_all(erika=erika, mqqt=erika_mqqt)
-    #     )
-    erika.screen.work_on_tft()
+    asyncio.run(
+        start_all(erika=erika, mqqt=erika_mqqt)
+        )
+    # erika.screen.work_on_tft()
 else:
     print("No Config found. Asking User for it...")
     asyncio.run(
