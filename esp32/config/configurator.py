@@ -45,6 +45,8 @@ class BoardConfig:
     def __init__(self):
         self.erika_rts = None
         self.erika_cts = None
+        self.erika_rx = None
+        self.erika_tx = None
         
         self.screen_display_type = None
         self.screen_rst = None

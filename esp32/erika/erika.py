@@ -37,7 +37,8 @@ class Erika:
         }
     CHAR_SPACING = 0 # 0 = 10, 1 = 12 on the slider
 
-    def __init__(self, rts_pin=RTS_PIN, cts_pin=CTS_PIN):
+    def __init__(self, rts_pin=RTS_PIN, cts_pin=CTS_PIN, rx_pin=RX_PIN, tx_pin=TX_PIN):
+        print("Erika loading. rts:{rts_pin} cts_pin{}{}{}".format())
         # line_buffer will be filled until "Return" is hit
         self.input_line_buffer = ''
         # lines_buffer will save the whole texte before doing sth with it.
@@ -51,6 +52,9 @@ class Erika:
         # Without CTS to low, Erika will not send data
         cts = Pin(cts_pin, Pin.OUT)
         cts.off
+
+        self.rx = rx_pin
+        self.tx = tx_pin
 
         self.sender = self.Sender(self)
         self.action_controller = self.ActionController(self)
@@ -173,7 +177,7 @@ class Erika:
 
     def start_uart(self, rx=RX_PIN, tx=TX_PIN, baud=1200):
         uart = UART(2, baud)
-        uart.init(baud, bits=8, parity=None, stop=1, rx=rx, tx=tx)
+        uart.init(baud, bits=8, parity=None, stop=1, rx=self.rx, tx=self.tx)
         print("uart started")
         return uart
 

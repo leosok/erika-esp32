@@ -62,7 +62,10 @@ def set_time():
 ###############################
 
 
-erika = Erika(cts_pin=board_config.erika_cts, rts_pin=board_config.erika_rts)
+erika = Erika(cts_pin=board_config.erika_cts, 
+                rts_pin=board_config.erika_rts,
+                rx_pin=board_config.erika_rx,
+                tx_pin=board_config.erika_tx)
 user_config = UserConfig()
 
 
