@@ -38,11 +38,14 @@ class Erika:
     CHAR_SPACING = 0 # 0 = 10, 1 = 12 on the slider
 
     def __init__(self, rts_pin=RTS_PIN, cts_pin=CTS_PIN, rx_pin=RX_PIN, tx_pin=TX_PIN):
-        print("Erika loading. rts:{rts_pin} cts_pin{}{}{}".format())
+        print("Erika loading. rts:{} cts:{} rx:{} tx:{}".format(rts_pin,cts_pin, rx_pin, tx_pin))
         # line_buffer will be filled until "Return" is hit
         self.input_line_buffer = ''
         # lines_buffer will save the whole texte before doing sth with it.
         self.input_lines_buffer = []
+
+        self.rx = rx_pin
+        self.tx = tx_pin
 
         self.uart = self.start_uart()
         self.ddr_2_ascii = erica_encoder_decoder.DDR_ASCII()
@@ -52,9 +55,6 @@ class Erika:
         # Without CTS to low, Erika will not send data
         cts = Pin(cts_pin, Pin.OUT)
         cts.off
-
-        self.rx = rx_pin
-        self.tx = tx_pin
 
         self.sender = self.Sender(self)
         self.action_controller = self.ActionController(self)
