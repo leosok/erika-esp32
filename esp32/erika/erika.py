@@ -44,6 +44,8 @@ class Erika:
         # lines_buffer will save the whole texte before doing sth with it.
         self.input_lines_buffer = []
 
+        # Remember Rx/Tx are opposed to Pins at the typewriter:
+        # If your Rx is on Pin 5, connect it to Tx on the typewriter (B13)
         self.rx = rx_pin
         self.tx = tx_pin
 
