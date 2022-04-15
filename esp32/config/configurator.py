@@ -43,10 +43,10 @@ class BoardConfig:
     CONF_FILE = 'config/board_config.json'
 
     def __init__(self):
-        self.erika_rts = None
-        self.erika_cts = None
-        self.erika_rx = None
-        self.erika_tx = None
+        self.erika_rts = None # RTS (request to send -> Ausgang)->(A12)
+        self.erika_cts = None # CTS (clear to send -> Eingang) DTD on the Erika Specs (B11)
+        self.erika_rx = None # Remember Rx/Tx are opposed to Pins at the typewriter:
+        self.erika_tx = None # If your Rx is on Pin 5, connect it to Tx on the typewriter (B13)
         
         self.screen_display_type = None
         self.screen_rst = None
