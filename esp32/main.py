@@ -69,11 +69,7 @@ erika = Erika(cts_pin=board_config.erika_cts,
         tx_pin=board_config.erika_tx,  
         rx_pin=board_config.erika_rx,  
         screen=screen)
-
-erika = Erika(cts_pin=board_config.erika_cts, 
-                rts_pin=board_config.erika_rts,
-                rx_pin=board_config.erika_rx,
-                tx_pin=board_config.erika_tx)
+        
 user_config = UserConfig()
 
 

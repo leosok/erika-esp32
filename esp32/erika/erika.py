@@ -36,7 +36,7 @@ class Erika:
         }
     CHAR_SPACING = 0 # 0 = 10, 1 = 12 on the slider
 
-    def __init__(self, rts_pin=RTS_PIN, cts_pin=CTS_PIN, rx_pin=RX_PIN, tx_pin=TX_PIN):
+    def __init__(self, rts_pin=RTS_PIN, cts_pin=CTS_PIN, rx_pin=RX_PIN, tx_pin=TX_PIN, screen=None):
         print("Erika loading. rts:{} cts:{} rx:{} tx:{}".format(rts_pin,cts_pin, rx_pin, tx_pin))
         # line_buffer will be filled until "Return" is hit
         self.input_line_buffer = ''
@@ -158,7 +158,7 @@ class Erika:
                 for char in line:
                     sent = False
                     while not sent:
-                        # print("RTS {}".format(self.rts.value()))
+                        #print("RTS {}".format(self.rts.value()))
                         if self.rts.value() == 0:
                             # Erika is ready
                             #print(char, end=' : ')

@@ -4,10 +4,10 @@
 
     "__comment":"This file will not be synchronized by Pymakr",
 
-    "erika_rts" : 27,
-    "erika_cts" : 26,
+    "erika_rts" : 13,
+    "erika_cts" : 15,
     "erika_rx" : 32,
-    "erika_tx" : 33,
+    "erika_tx" : 33, 
     
     "screen_display_type": "TTGO_T_DISPLAY",
 
@@ -18,3 +18,4 @@
     "_reset":23,
     "_dc":16
 }
+

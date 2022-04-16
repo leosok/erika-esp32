@@ -158,7 +158,7 @@ class Screen:
       BG_COLOR = BLACK
       scale = 0.65
       font_max_height = 32
-      print("write_to_screen: " + text)
+      #print("write_to_screen: " + text)
 
       # import scriptc as font
       if reset:
@@ -172,7 +172,7 @@ class Screen:
       line_height =  math.ceil(font_max_height * scale) + padding
       # print(f"line_height: {line_height}")
       line_y = line_height * (line - 1)
-      print(f"line: {line}; line_y: {line_y}; text: {text}")
+      #print(f"line: {line}; line_y: {line_y}; text: {text}")
       
       if centered:
         text_len = tft.draw_len(font, text, scale)
@@ -181,7 +181,7 @@ class Screen:
         text_x = 5 # use this for centering!
 
       text_y = line_y + math.ceil(line_height/2) + 2*padding
-      print(f"text_y: {text_y}, line_y: {line_y} // line_height: {line_height}")
+      #print(f"text_y: {text_y}, line_y: {line_y} // line_height: {line_height}")
 
       tft.fill_rect(0,line_y + (2*padding), tft.width(), line_height, BG_COLOR)
       if not color:
