@@ -10,7 +10,10 @@ board_config = BoardConfig()
 
 status_led(False)
 print("starting screen...")
-screen.starting(display_type=board_config.screen_display_type)
+screen = screen.Screen(board_type=board_config.screen_display_type)
+screen.splash_screen("starting...")
+
+# screen.starting(display_type=board_config.screen_display_type)
 #screen.show_qr_code()
 
 
@@ -61,6 +64,11 @@ def set_time():
 #  ***      START       ***   #
 ###############################
 
+erika = Erika(cts_pin=board_config.erika_cts, 
+        rts_pin=board_config.erika_rts, 
+        tx_pin=board_config.erika_tx,  
+        rx_pin=board_config.erika_rx,  
+        screen=screen)
 
 erika = Erika(cts_pin=board_config.erika_cts, 
                 rts_pin=board_config.erika_rts,
@@ -72,15 +80,17 @@ user_config = UserConfig()
 # Here we have to xcheck, if a configuration is present.
 # If not, we need ot gather data from the user.
 
+
 if user_config.load():
-    do_connect(user_config.wlan_ssid, user_config.wlan_password)
+    #do_connect(user_config.wlan_ssid, user_config.wlan_password)
     set_time()
     erika_mqqt = ErikaMqqt(erika=erika)
     erika.mqqt_client = erika_mqqt
-    screen.write_to_screen("Erika",line=1,centered=True)
+    screen.write_to_screen("Erika",line=1,reset=True)
     asyncio.run(
         start_all(erika=erika, mqqt=erika_mqqt)
         )
+    # erika.screen.work_on_tft()
 else:
     print("No Config found. Asking User for it...")
     asyncio.run(

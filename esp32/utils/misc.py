@@ -1,6 +1,5 @@
 from utils.timeit import timed_function
 from erika import Erika
-from utils.screen_utils import write_to_screen
 
 @timed_function
 def file_lines_count(filename):
