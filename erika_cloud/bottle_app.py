@@ -3,6 +3,7 @@ import logging
 import os
 import os.path as op
 from email.utils import parseaddr
+from utils.bottle_utils import check_pass
 
 import peewee
 from bottle import (route, run, hook, view, default_app,
@@ -58,6 +59,7 @@ def index_sender():
 
 
 @route('/pages')
+@auth_basic(check_pass)
 @view('all_pages.tpl.html')
 def all():
     pages = Textdata.select().order_by(
@@ -89,12 +91,6 @@ def erika_single(uuid):
     emails = typewriter.messages.dicts()
 
     return dict(emails=emails)
-
-
-def check_pass(username, password):
-    admin_pass = os.getenv("ADMIN_PWD")
-    return username == "admin" and password == admin_pass
-
 
 @route('/erika/<erika_name>')
 @view('erika_single.tpl.html')
