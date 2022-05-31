@@ -81,17 +81,16 @@ class ErikaMqqt:
                 logger.info(e)
 
         # Execute Commands from Erika
-        if msg_type == "upload":
+        if msg_type == "upload":               
             if "cmd" in data:
                 if data["cmd"] == "email":
                     subject = f'Erika Text {datetime.now().strftime("%d.%m.%Y")}'
                     content = Textdata.as_fulltext(data['hashid'])
+                    
+                    from utils.mail_utils import send_email
                     return send_email(data['from'], data['to'], subject, content)
-
-                try:
-                    Textdata.create(content=data['line'], hashid=data['hashid'], line_number=data['lnum'])
-                except IntegrityError:
-                    logger.info("Already saved line {}".format(data['line']))
+            else:
+                Textdata.create(content=data['line'], hashid=data['hashid'], line_number=data['lnum'])
         return True
 
     def on_log(self, mqttc, obj, level, string):
