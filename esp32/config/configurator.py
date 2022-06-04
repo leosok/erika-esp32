@@ -45,6 +45,8 @@ class BoardConfig:
     def __init__(self):
         self.erika_rts = None
         self.erika_cts = None
+        self.erika_rx = None
+        self.erika_tx= None
         
         self.screen_display_type = None
         self.screen_rst = None
@@ -136,27 +138,25 @@ class UserConfig:
     
 
     async def get_config_io(self, erika:Erika):
-        from utils.screen_utils import write_to_screen, show_progress, reset
+        board_config = BoardConfig()
         CONFIG_STEPS = 5
 
-        reset().show()
         await erika.ask_for_paper()
         
         await erika.print_text(self.load_welcome_text())
 
-        reset().show()
-        write_to_screen("Konfiguration", line=2, centered=True)
-        show_progress(0,CONFIG_STEPS)
+        erika.screen.write_to_screen("Konfiguration", line=2, centered=True)
+        erika.screen.show_progress(0,CONFIG_STEPS)
 
         self.erika_name = await erika.ask("Wie heißt deine Erika?")
-        show_progress(1,CONFIG_STEPS)
+        erika.screen.show_progress(1,CONFIG_STEPS)
         self.user_firstname = await erika.ask("Dein Vorname")
-        show_progress(2,CONFIG_STEPS)
+        erika.screen.show_progress(2,CONFIG_STEPS)
         self.user_lastname = await erika.ask("Dein Nachname")
-        show_progress(3,CONFIG_STEPS)
+        erika.screen.show_progress(3,CONFIG_STEPS)
         self.email_adress = await erika.ask("Deine Email-Adresse? - Nutze (at)")
         self.email_adress = self.email_adress.replace('(at)', '@')
-        show_progress(4,CONFIG_STEPS)
+        erika.screen.show_progress(4,CONFIG_STEPS)
         
         # Wlan
         await erika.print_text("--- Wlan Configuration ---")
@@ -176,7 +176,7 @@ class UserConfig:
 
         erika.sender._newline()
         wlan_number_str = await erika.ask("Bitte Nummer des Netwerks eingeben")
-        show_progress(5,CONFIG_STEPS)
+        erika.screen.show_progress(5,CONFIG_STEPS)
         try:
             self.wlan_ssid = wlans[int(wlan_number_str)-1][0] # last 0 is for the tuple
         except IndexError: # type: ignore
@@ -184,12 +184,12 @@ class UserConfig:
             self.wlan_ssid = wlans[int(wlan_number_str)-1][0] # last 0 is for the tuple
 
         self.wlan_password = await erika.ask("Bitte Passwort eingeben")
-        show_progress(5,CONFIG_STEPS)
+        erika.screen.show_progress(5,CONFIG_STEPS)
 
         if do_connect(self.wlan_ssid, self.wlan_password, timeout_sec=10):
             await erika.print_text("Ok: Verbindung mit '{}' hergestellt!".format(self.wlan_ssid))
             self.save()
-            show_progress(5,CONFIG_STEPS)
+            erika.screen.show_progress(5,CONFIG_STEPS)
         else:
             await erika.print_text("Verbindungsfehler - Keine Verbindung mit '{}'.".format(self.wlan_ssid))
             self.wlan_password = await erika.ask("Bitte Passwort wiederholen")
@@ -197,7 +197,7 @@ class UserConfig:
                 await erika.print_text("Ok: Verbindung mit '{}' hergestellt!".format(self.wlan_ssid))
                 self.save()
 
-        show_progress(6,CONFIG_STEPS)
+        erika.screen.show_progress(6,CONFIG_STEPS)
         erika.sender._newline()
         
         typewriter_config = {
