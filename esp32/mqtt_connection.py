@@ -33,6 +33,7 @@ class ErikaMqqt:
         self.mqqt_id = b'{}_{}'.format(mqqt_id, self.uuid)
         self.erika_id = self.uuid
         self.client = None
+        self.plugins = []
 
     async def start_mqqt_connection(self):
         # moved here, so erika is not started by itself.
@@ -87,7 +88,8 @@ class ErikaMqqt:
             print("Got something to print...")
             asyncio.create_task(self.erika.print_text(msg_str))
             # set status needs to be changed. Needs to be set in printer and checked by mqqt in some loop
-
+        for plugin in self.plugins:
+            plugin.on_mqqt_message(topic,msg_str)
     # Changes the status of this Erika on the erika/n/status channel
     # status: ERIKA_STATE_OFFLINE, ERIKA_STATE_LISTENING, ERIKA_STATE_PRINTING
 
