@@ -1,7 +1,6 @@
 from utils.misc import file_lines_count
 from lib.mqtt_as import MQTTClient, config
 import uasyncio as asyncio
-from utils.screen_utils import write_to_screen, show_progress
 import time
 from machine import Timer
 from erika import Erika
@@ -82,8 +81,6 @@ class ErikaMqqt:
         msg_str = str(msg, 'UTF-8')
         print(topic + ":" + msg_str)
 
-        if "show" in topic:
-            write_to_screen(msg_str)
         if "print" in topic:
             print("Got something to print...")
             asyncio.create_task(self.erika.print_text(msg_str))
@@ -111,6 +108,7 @@ class ErikaMqqt:
     async def upload_text_file(self, filename='saved_lines.txt'):
         import uuid
         import json
+        screen = self.erika.screen
         hashid = str(uuid.uuid4())[:8]
 
         file_line_count = file_lines_count(filename)
@@ -127,10 +125,10 @@ class ErikaMqqt:
             #print("line: {} {}".format(i, json.dumps(line_json)))
             await self.client.publish(self.channel_upload, json.dumps(line_json), qos=1)
             asyncio.sleep(0.05)
-            show_progress(progress=i, max=file_line_count)
+            screen.show_progress(progress=i, max=file_line_count)
         f.close()
         process_time = round((time.ticks_ms() - start_time) / 1000)
-        write_to_screen("Ok. {} in {}s".format(i, process_time), margin=5)
+        screen.write_to_screen("Ok. {} in {}s".format(i, process_time), margin=5)
 
         EMAIL_FROM='electronic@erika-cloud.de'
         # send command to send the email

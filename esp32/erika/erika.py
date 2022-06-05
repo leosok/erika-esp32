@@ -7,7 +7,6 @@ from erika import erica_encoder_decoder
 import binascii
 import uasyncio as asyncio
 from lib.primitives.queue import Queue
-from utils.screen_utils import write_to_screen
 # from utils.umailgun import Mailgun, CONFIG_MY_EMAIL, MAILGUN_API_KEY, MAILGUN_API_URL
 
 # For more stuff see:
@@ -37,11 +36,17 @@ class Erika:
         }
     CHAR_SPACING = 0 # 0 = 10, 1 = 12 on the slider
 
-    def __init__(self, rts_pin=RTS_PIN, cts_pin=CTS_PIN):
+    def __init__(self, rts_pin=RTS_PIN, cts_pin=CTS_PIN, rx_pin=RX_PIN, tx_pin=TX_PIN, screen=None):
+        print("Erika loading. rts:{} cts:{} rx:{} tx:{}".format(rts_pin,cts_pin, rx_pin, tx_pin))
         # line_buffer will be filled until "Return" is hit
         self.input_line_buffer = ''
         # lines_buffer will save the whole texte before doing sth with it.
         self.input_lines_buffer = []
+
+        # Remember Rx/Tx are opposed to Pins at the typewriter:
+        # If your Rx is on Pin 5, connect it to Tx on the typewriter (B13)
+        self.rx = rx_pin
+        self.tx = tx_pin
 
         self.uart = self.start_uart()
         self.ddr_2_ascii = erica_encoder_decoder.DDR_ASCII()
@@ -72,6 +77,9 @@ class Erika:
         # this is a way to upload files:
         self.mqqt_client = None
         self.uuid = binascii.hexlify(unique_id()).decode()
+
+        # for using screen
+        self.screen = screen
 
     # async def print_test(self, queue, counter):
     #     while True:
@@ -150,7 +158,7 @@ class Erika:
                 for char in line:
                     sent = False
                     while not sent:
-                        # print("RTS {}".format(self.rts.value()))
+                        #print("RTS {}".format(self.rts.value()))
                         if self.rts.value() == 0:
                             # Erika is ready
                             #print(char, end=' : ')
@@ -173,7 +181,7 @@ class Erika:
 
     def start_uart(self, rx=RX_PIN, tx=TX_PIN, baud=1200):
         uart = UART(2, baud)
-        uart.init(baud, bits=8, parity=None, stop=1, rx=rx, tx=tx)
+        uart.init(baud, bits=8, parity=None, stop=1, rx=self.rx, tx=self.tx)
         print("uart started")
         return uart
 
@@ -228,8 +236,8 @@ class Erika:
         """
         self.sender.alarm()
         #self.sender.set_keyboard_echo(False)
-        write_to_screen("Papier einlegen", line=3, centered=True)
-        write_to_screen(" und ENTER", line=4, centered=True)   
+        self.screen.write_to_screen("Papier einlegen", line=3, centered=True)
+        self.screen.write_to_screen(" und ENTER", line=4, centered=True)   
         self.is_prompting = True
         await self.ask("",only_enter=True) # just wait for the Enter
         self.line_on_page = 0
@@ -295,7 +303,7 @@ class Erika:
         }
 
         def start_action_promt(self):
-            write_to_screen("Enter Action")
+            self.erika.screen.write_to_screen("Enter Action")
             self.erika.sender.alarm()
             self.erika.sender.set_keyboard_echo(False)
             self.erika.mqqt_send_keystrokes = False
@@ -308,7 +316,7 @@ class Erika:
                 control_string = input[-len(input) + c_string_start:]
                 # Keyboard was off for "start_action_promt", set it back to original state
                 self.erika.sender.set_keyboard_echo(self.erika.keyboard_echo)
-                write_to_screen("Action: {}".format(control_string))
+                self.erika.screen.write_to_screen("Action: {}".format(control_string))
                 self.action(control_string)
             else:
                 return False
@@ -344,7 +352,7 @@ class Erika:
         async def keycast(self, is_active):
             '''Send every key typed to MQQT'''
             self.erika.mqqt_send_keystrokes = is_active
-            write_to_screen("Keycast: {}".format(is_active))
+            self.screen.write_to_screen("Keycast: {}".format(is_active))
 
         async def hallo(self):
             info = '''Prints a "hello"'''
@@ -362,20 +370,20 @@ class Erika:
             '''resets the temp file'''
             # this last line has the ;;:save command
             open(self.erika.TEMP_LINES_FILE, "w").close()
-            write_to_screen("Tempfile clear.")
+            self.erika.screen.write_to_screen("Tempfile clear.")
 
         async def reset(self):
             '''deletes User-config of this Erika'''
             from config.configurator import UserConfig
             result = UserConfig().delete()
-            write_to_screen("Reset: {}".format(result))
+            self.erika.screen.write_to_screen("Reset: {}".format(result))
             reset()
 
         async def typing(self, is_active):
             '''Typing echo on/off"'''
             print("Typing: {}".format(is_active))
             self.erika.sender.set_keyboard_echo(is_active)
-            write_to_screen("Typing: {}".format(is_active))
+            self.erika.screen.write_to_screen("Typing: {}".format(is_active))
 
         async def hilfe(self):
             parent_class = self
