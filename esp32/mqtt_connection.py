@@ -1,3 +1,6 @@
+# pylint: disable=unused-wildcard-import, method-hidden
+# pyright: reportMissingImports=false, reportUnusedVariable=warning
+
 from utils.misc import file_lines_count
 from lib.mqtt_as import MQTTClient, config
 import uasyncio as asyncio
@@ -62,7 +65,7 @@ class ErikaMqqt:
 
         try:
             await self.client.connect()
-        except OSError:
+        except OSError: # type: ignore
             print('Connection failed.')
             print('Connection failed. Retrying.')
             await asyncio.sleep_ms(3000)

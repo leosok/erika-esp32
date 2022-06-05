@@ -1,4 +1,5 @@
 # screen_utils.py
+# pyright: reportMissingImports=false, reportUnusedVariable=warning
 
 from machine import SoftI2C, SoftSPI, Pin, sleep
 from random import randint

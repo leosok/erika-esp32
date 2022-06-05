@@ -288,7 +288,7 @@ class Erika:
 
     class ActionController:
 
-        def __init__(self, erika: Erika = None):
+        def __init__(self, erika:Erika = None): #type: ignore
             self.erika = erika
             self.action_promt_string = erika.ACTION_PROMT_STRING
 
@@ -341,7 +341,7 @@ class Erika:
                     method_to_call = getattr(self, action_str)
                     loop.create_task(method_to_call())
 
-            except AttributeError:
+            except AttributeError: # type: ignore
                 print("Could not execute '{}'".format(action_str))
 
         async def p(self):

@@ -1,4 +1,6 @@
 # Baseclass for Erika Plugins
+from erika import Erika
+from mqtt_connection import ErikaMqqt
 
 class ErikaBasePlugin:
     """

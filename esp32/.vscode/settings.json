@@ -27,5 +27,5 @@
         ".micropy\\esp32"
     ],
     "python.linting.flake8Enabled": false,
-    "python.languageServer": "Pylace"
+    "python.languageServer": "Pylance"
 }

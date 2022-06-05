@@ -15,3 +15,7 @@ def status_led(status:bool, pin=25):
     from machine import Pin
     OnboardLED = Pin(pin, Pin.OUT)
     OnboardLED.value(status)
+
+
+def capitalize(string:str) -> str:
+    return string[0].upper() + string[1:]

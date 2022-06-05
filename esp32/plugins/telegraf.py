@@ -2,7 +2,7 @@ from mqtt_connection import ErikaMqqt
 from plugins.erika_plugin_base import ErikaBasePlugin
 
 class Telegraf(ErikaBasePlugin):
-    def __init__(self, erika:Erika=None, mqqt:ErikaMqqt=None):
+    def __init__(self, erika:Erika=None, mqqt:ErikaMqqt=None): # type: ignore
         super().__init__(
             plugin_name=self.__name__, 
             erika=erika, 
