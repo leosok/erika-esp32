@@ -141,10 +141,15 @@ class Erika:
     async def printer(self, queue):
         while True:
             text, linefeed = await queue.get()  # Blocks until data is ready
-            print('Printer found text in Queue. Linefeed is {}'.format(linefeed))
             self.is_printing = True
             swriter = asyncio.StreamWriter(self.uart, {})
-            lines = self.string_to_lines(text=text, linefeed=linefeed)
+            # When it is just a key, string_to_lines
+            if len(text) == 1:
+                print('Printer printing a key: {}'.format(text))
+                lines = [text]
+            else:
+                print('Printer found text in Queue. Linefeed is {}'.format(linefeed))
+                lines = self.string_to_lines(text=text, linefeed=linefeed)
             for idx, line in enumerate(lines):
                 print("{}/{}: {}".format(idx, len(lines), line))                
                 if self.line_on_page >= self.lines_per_page:
