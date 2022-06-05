@@ -1,6 +1,7 @@
 # pylint: disable=unused-wildcard-import, method-hidden
 # pyright: reportMissingImports=false, reportUnusedVariable=warning
 
+import plugins
 from utils.misc import file_lines_count
 from lib.mqtt_as import MQTTClient, config
 import uasyncio as asyncio
@@ -21,21 +22,20 @@ class ErikaMqqt:
 
     def __init__(self, erika, mqqt_id='erika', erika_id='1'):
         self.uuid = ubinascii.hexlify(machine.unique_id()).decode()
-        self.channel_status = b'{client_id}/status/{erika_id}'.format(client_id=mqqt_id,
-                                                                      erika_id=self.uuid)  # erika/1/status
-        self.channel_print = b'{client_id}/print/{erika_id}'.format(client_id=mqqt_id,
-                                                                    erika_id=self.uuid)  # erika/1/print
-        
-        self.channel_upload = b'{client_id}/upload/{erika_id}'.format(client_id=mqqt_id,  
-                                                                      erika_id=self.uuid) # erika/1/upload
-
-        self.channel_keystrokes = b'{client_id}/keystrokes/{erika_id}'.format(client_id=mqqt_id, erika_id=self.uuid) # erika/1/upload
-        
+    
         self.erika = erika
         self.mqqt_id = b'{}_{}'.format(mqqt_id, self.uuid)
         self.erika_id = self.uuid
         self.client = None
         self.plugins = []
+
+        self.channel_status = self.__get_channel_name('status') # erika/1/status
+        self.channel_print = self.__get_channel_name('print') # erika/1/print
+        self.channel_upload = self.__get_channel_name('upload') # erika/1/upload
+        self.channel_keystrokes = self.__get_channel_name('keystrokes')
+
+    def __get_channel_name(self, channel_name:str):
+        return b'erika/{channel_name}/{erika_id}'.format(erika_id=self.uuid, channel_name=channel_name)
 
     async def start_mqqt_connection(self):
         # moved here, so erika is not started by itself.
@@ -84,12 +84,15 @@ class ErikaMqqt:
         msg_str = str(msg, 'UTF-8')
         print(topic + ":" + msg_str)
 
+        for plugin in self.plugins:
+            if plugin.topic in topic:
+                plugin.on_message(topic=topic, msg=msg_str)
+
         if "print" in topic:
             print("Got something to print...")
             asyncio.create_task(self.erika.print_text(msg_str))
             # set status needs to be changed. Needs to be set in printer and checked by mqqt in some loop
-        for plugin in self.plugins:
-            plugin.on_mqqt_message(topic,msg_str)
+      
     # Changes the status of this Erika on the erika/n/status channel
     # status: ERIKA_STATE_OFFLINE, ERIKA_STATE_LISTENING, ERIKA_STATE_PRINTING
 
@@ -105,6 +108,11 @@ class ErikaMqqt:
     async def conn_han(self, client):
         print("Subscribing to Channel: {}".format(self.channel_print))
         await client.subscribe(topic=self.channel_print, qos=0)
+        
+        for plugin in self.plugins:
+            channel = self.__get_channel_name(plugin.topic)
+            print("Subscribing PLUGIN to Channel: {}".format(channel))
+            await client.subscribe(topic=channel, qos=0)
         asyncio.create_task(self.set_status(self.ERIKA_STATE_LISTENING))
 
     # "Upload" a textfile via mqqt

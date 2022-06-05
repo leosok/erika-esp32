@@ -6,13 +6,15 @@ class ErikaBasePlugin:
     """
     A Base Plugin Class. Use as Baseclass for you Plugins to get basic functionality.
     """
-    def __init__(self, plugin_name:str="new_plugin", erika:Erika=None, mqqt:ErikaMqqt=None):
+    def __init__(self, erika:Erika=None, erika_mqqt:ErikaMqqt=None, topic=None):
         self.erika=erika
-        self.plugin_name = plugin_name
+        self.erika_mqqt=erika_mqqt
+        self.plugin_name = self.__class__.__name__.lower()
+        self.topic = topic or self.plugin_name
         self.__register_plugin()
 
     def __register_plugin(self):
-        self.mqqt.plugins.append(self)
+        self.erika_mqqt.plugins.append(self)
 
     def on_message(self, topic:str, msg:str):
         print(topic, msg)

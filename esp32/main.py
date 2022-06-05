@@ -16,7 +16,6 @@ screen.splash_screen("starting...")
 # screen.starting(display_type=board_config.screen_display_type)
 #screen.show_qr_code()
 
-
 import time
 from mqtt_connection import ErikaMqqt
 import ntptime
@@ -24,6 +23,7 @@ from erika import Erika
 import uasyncio as asyncio
 import network
 import machine
+from plugins import register_plugins
 
 from utils.network_utils import do_connect, scan_wlan
 
@@ -79,13 +79,17 @@ user_config = UserConfig()
 
 if user_config.load():
     #do_connect(user_config.wlan_ssid, user_config.wlan_password)
-    set_time()
+    #set_time()
     erika_mqqt = ErikaMqqt(erika=erika)
     erika.mqqt_client = erika_mqqt
     screen.write_to_screen("Erika",line=1,reset=True)
+    
+    register_plugins(erika=erika, erika_mqqt=erika_mqqt)
+
     asyncio.run(
         start_all(erika=erika, mqqt=erika_mqqt)
         )
+    
     # erika.screen.work_on_tft()
 else:
     print("No Config found. Asking User for it...")
