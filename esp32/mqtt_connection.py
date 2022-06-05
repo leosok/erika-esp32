@@ -13,6 +13,7 @@ from utils.misc import status_led
 import ubinascii
 import machine
 import gc
+import json
 
 
 class ErikaMqqt:
@@ -33,6 +34,7 @@ class ErikaMqqt:
         self.channel_print = self.__get_channel_name('print') # erika/1/print
         self.channel_upload = self.__get_channel_name('upload') # erika/1/upload
         self.channel_keystrokes = self.__get_channel_name('keystrokes')
+        self.channel_print_all = b'erika/print/all'
 
     def __get_channel_name(self, channel_name:str):
         return b'erika/{channel_name}/{erika_id}'.format(erika_id=self.uuid, channel_name=channel_name)
@@ -89,8 +91,18 @@ class ErikaMqqt:
                 plugin.on_message(topic=topic, msg=msg_str)
 
         if "print" in topic:
-            print("Got something to print...")
-            asyncio.create_task(self.erika.print_text(msg_str))
+            # print("Got something to print...")
+            linefeed = True
+            if "all" in topic:
+                if json.loads(msg_str)["sender"] == self.erika_id:
+                    return # break, if our erika is the sender
+                msg_str = json.loads(msg_str)["text"]
+                if msg_str=="\n":
+                    linefeed = True
+                else:
+                    linefeed = False
+
+            asyncio.create_task(self.erika.print_text(msg_str, linefeed=linefeed))
             # set status needs to be changed. Needs to be set in printer and checked by mqqt in some loop
       
     # Changes the status of this Erika on the erika/n/status channel
@@ -108,7 +120,8 @@ class ErikaMqqt:
     async def conn_han(self, client):
         print("Subscribing to Channel: {}".format(self.channel_print))
         await client.subscribe(topic=self.channel_print, qos=0)
-        
+        await client.subscribe(topic=self.channel_print_all, qos=0)
+    
         for plugin in self.plugins:
             channel = self.__get_channel_name(plugin.topic)
             print("Subscribing PLUGIN to Channel: {}".format(channel))
@@ -153,3 +166,6 @@ class ErikaMqqt:
     async def send_keystroke(self, key="", channel=None):
         channel = channel or self.channel_keystrokes
         await self.client.publish(self.channel_keystrokes, key, qos=0)
+        for plugin in self.plugins:
+            if plugin.keylogging:
+                await plugin.on_keystroke(key)

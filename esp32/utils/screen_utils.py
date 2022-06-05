@@ -5,9 +5,12 @@ from machine import SoftI2C, SoftSPI, Pin, sleep
 from random import randint
 import time
 import gc
-from st7789 import BLACK, BLUE, RED, GREEN, CYAN, MAGENTA, YELLOW, WHITE
 from utils.timeit import timed_function
 
+try:
+  from st7789 import BLACK, BLUE, RED, GREEN, CYAN, MAGENTA, YELLOW, WHITE
+except:
+  pass # not a TTGO_T_DISPLAY
 
 
 class BoardType:

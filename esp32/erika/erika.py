@@ -68,7 +68,7 @@ class Erika:
         self.is_prompting = False
 
         self.keyboard_echo = True
-        self.mqqt_send_keystrokes = False
+        self.mqqt_send_keystrokes = True
         
         # page settings
         self.lines_per_page = self.LINES_PER_PAGE['LINE_SPACING_20']
