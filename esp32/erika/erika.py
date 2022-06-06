@@ -436,23 +436,25 @@ class Erika:
 
         def _print_raw(self, data, sleep=0.3):
             """prints base16 formated data, or byte_string"""
+            self.sleep_until_rts()
             try:
                 byte_data = binascii.unhexlify(data)
             except ValueError: # type: ignore
                 byte_data = data
             print(byte_data)
             self.erika.uart.write(byte_data)
-            time.sleep(sleep)
+            #time.sleep(sleep)
 
-        def _print_char(self, char):
+
+        def _print_char(self, char, sleep=0.3):
             byte_data = self.erika.ddr_2_ascii.encode(char)
             self.erika.uart.write(byte_data)
-            time.sleep(0.3)
+            self.sleep_until_rts()
 
         def _print_smiley(self):
             """print a smiley"""
             self._print_raw('13')
-            time.sleep(0.3)
+            self.sleep_until_rts()
             self._print_raw('1F')
 
         def _newline(self):
@@ -461,14 +463,14 @@ class Erika:
         def set_keyboard_echo(self, is_active=True):
             if is_active:
                 self._print_raw("92")
-                time.sleep(0.3)
+                self.sleep_until_rts()
             else:
                 self._print_raw("91")
-                time.sleep(0.3)
+                self.sleep_until_rts()
 
         def paper_feed(self, steps = 140):
             self._print_raw(steps * "75")
-            time.sleep(0.3)
+            self.sleep_until_rts()
 
         def _int_to_hex(self, value):
             hex_str = hex(value)[2:]
@@ -482,11 +484,19 @@ class Erika:
             else:
                 print("print_dir: forward")
                 self._print_raw(char_map.page_controls['PRINT_DIR_FOREWARD'], 0.1)
-            time.sleep(0.3)
+            self.sleep_until_rts()
+
+        def sleep_until_rts(self):
+            while True:
+                time.sleep_ms(40)
+                if self.erika.rts.value() == 0:
+                    break
+                else:
+                    time.sleep_ms(40)
 
         def delete_char(self, char:str):
             self.set_backwards_printing(True)
             self._print_raw(char_map.page_controls['CORRECTION_TAPE_ON'], 0.1)
-            self._print_char(char)
+            self._print_char(char, 0.4)
             self._print_raw(char_map.page_controls['CORRECTION_TAPE_OFF'], 0.3)
             self.set_backwards_printing(False)
