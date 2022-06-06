@@ -97,8 +97,7 @@ class ErikaMqqt:
                 if json.loads(msg_str)["sender"] == self.erika_id:
                     return # break, if our erika is the sender
                 msg_str = json.loads(msg_str)["text"]
-
-
+                
             asyncio.create_task(self.erika.print_text(msg_str, linefeed=linefeed))
             # set status needs to be changed. Needs to be set in printer and checked by mqqt in some loop
       

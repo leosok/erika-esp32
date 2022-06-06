@@ -42,6 +42,7 @@ class Erika:
         self.input_line_buffer = ''
         # lines_buffer will save the whole texte before doing sth with it.
         self.input_lines_buffer = []
+        self.last_printed_chars = ''
 
         # Remember Rx/Tx are opposed to Pins at the typewriter:
         # If your Rx is on Pin 5, connect it to Tx on the typewriter (B13)
@@ -144,9 +145,20 @@ class Erika:
             self.is_printing = True
             swriter = asyncio.StreamWriter(self.uart, {})
             # When it is just a key, string_to_lines
-            if len(text) == 1:
+            if text in char_map.A2E:
                 print('Printer printing a key: {}'.format(text))
                 lines = [text]
+                if text == 'DEL':
+                    print("lastdel: "+self.last_printed_chars)
+                    last_char = self.last_printed_chars[-1:]
+                    print("Deleting char {}".format(last_char))
+                    lines = []
+                    self.sender.delete_char(last_char)
+                    self.last_printed_chars = self.last_printed_chars[:-1] # truncating buffer 60 chars
+                else:
+                    self.last_printed_chars = self.last_printed_chars[-60:]
+                    self.last_printed_chars += text
+                    print("lastdel_add: "+self.last_printed_chars)
             else:
                 print('Printer found text in Queue. Linefeed is {}'.format(linefeed))
                 lines = self.string_to_lines(text=text, linefeed=linefeed)
@@ -408,7 +420,7 @@ class Erika:
 
     class Sender:
 
-        def __init__(self, erika=None):
+        def __init__(self, erika:erika=None):
             self.erika = erika
 
         def alarm(self, duration=30):
@@ -422,21 +434,25 @@ class Erika:
             # Set keyboard_echo to original state
             self.set_keyboard_echo(self.erika.keyboard_echo)
 
-        def _print_raw(self, data):
-            """prints base16 formated data"""
-            byte_data = binascii.unhexlify(data)
+        def _print_raw(self, data, sleep=0.3):
+            """prints base16 formated data, or byte_string"""
+            try:
+                byte_data = binascii.unhexlify(data)
+            except ValueError: # type: ignore
+                byte_data = data
             print(byte_data)
             self.erika.uart.write(byte_data)
+            time.sleep(sleep)
 
         def _print_char(self, char):
             byte_data = self.erika.ddr_2_ascii.encode(char)
             self.erika.uart.write(byte_data)
-            time.sleep(0.2)
+            time.sleep(0.3)
 
         def _print_smiley(self):
             """print a smiley"""
             self._print_raw('13')
-            time.sleep(0.2)
+            time.sleep(0.3)
             self._print_raw('1F')
 
         def _newline(self):
@@ -445,16 +461,32 @@ class Erika:
         def set_keyboard_echo(self, is_active=True):
             if is_active:
                 self._print_raw("92")
-                time.sleep(0.2)
+                time.sleep(0.3)
             else:
                 self._print_raw("91")
-                time.sleep(0.2)
+                time.sleep(0.3)
 
         def paper_feed(self, steps = 140):
             self._print_raw(steps * "75")
-            time.sleep(0.2)
+            time.sleep(0.3)
 
         def _int_to_hex(self, value):
             hex_str = hex(value)[2:]
             hex_str = "0"+hex_str
             return hex_str[-2:]
+
+        def set_backwards_printing(self, backwards:bool=False):
+            if backwards:
+                print("print_dir: backwards")
+                self._print_raw(char_map.page_controls['PRINT_DIR_BACKWARD'], 0.1)
+            else:
+                print("print_dir: forward")
+                self._print_raw(char_map.page_controls['PRINT_DIR_FOREWARD'], 0.1)
+            time.sleep(0.3)
+
+        def delete_char(self, char:str):
+            self.set_backwards_printing(True)
+            self._print_raw(char_map.page_controls['CORRECTION_TAPE_ON'], 0.1)
+            self._print_char(char)
+            self._print_raw(char_map.page_controls['CORRECTION_TAPE_OFF'], 0.3)
+            self.set_backwards_printing(False)

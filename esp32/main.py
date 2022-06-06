@@ -30,9 +30,10 @@ from utils.network_utils import do_connect, scan_wlan
 
 async def wlan_strength(user_config:UserConfig, max=5):
     while True:
+        await asyncio.sleep(3)
         ip = do_connect(user_config.wlan_ssid, user_config.wlan_password)
         screen.network(ip)
-        await asyncio.sleep(max)
+        await asyncio.sleep(max-1)
        
 async def start_all(erika:Erika, mqqt:ErikaMqqt):
     # Schedule three calls *concurrently*:

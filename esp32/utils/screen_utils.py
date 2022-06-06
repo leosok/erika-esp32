@@ -146,8 +146,9 @@ class Screen:
   def write_to_screen(self, text, margin=20, line=5, centered=False, font=None, reset=False, color=None):
     if self.display_type == DisplayType.OLED:
       oled = self.display
+      margin = 5
       # Screen is 16 char wide, each char 8 px
-      print("Screen: " + text)
+      # print("Screen: " + text)
       oled.fill_rect(0, line*10, oled.width, 10, 0)
       if centered:
           empty_chars = 16-len(text)
