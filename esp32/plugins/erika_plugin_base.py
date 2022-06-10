@@ -34,7 +34,6 @@ class ErikaBasePlugin:
         if active:
             print("Plugin '{}' is ON".format(self.plugin_name))
             self.erika_mqqt.plugins.append(self)
-            print(self.erika_mqqt.plugins)
         else:
             # turn off plugin
             print("Plugin '{}' is OFF".format(self.plugin_name))
@@ -52,7 +51,7 @@ class ErikaBasePlugin:
             if self.erika_mqqt.client:
                 if active:
                     # means mqqt client is fully loaded.
-                    topic = self.erika_mqqt.__get_channel_name(self.topic)
+                    topic = self.erika_mqqt._get_channel_name(self.topic)
                     print("subscribing to '{}'".format(topic))
                     await self.erika_mqqt.client.subscribe(topic=topic, qos=0)
 

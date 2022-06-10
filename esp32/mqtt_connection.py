@@ -21,7 +21,7 @@ class ErikaMqqt:
     ERIKA_STATE_LISTENING = b'1'
     ERIKA_STATE_PRINTING = b'2'
 
-    def __init__(self, erika, mqqt_id='erika', erika_id='1'):
+    def __init__(self, erika:Erika, mqqt_id='erika', erika_id='1'):
         self.uuid = ubinascii.hexlify(machine.unique_id()).decode()
 
         self.erika = erika
@@ -30,15 +30,15 @@ class ErikaMqqt:
         self.client = None
         self.plugins = []
 
-        self.channel_status = self.__get_channel_name(
+        self.channel_status = self._get_channel_name(
             'status')  # erika/1/status
-        self.channel_print = self.__get_channel_name('print')  # erika/1/print
-        self.channel_upload = self.__get_channel_name(
+        self.channel_print = self._get_channel_name('print')  # erika/1/print
+        self.channel_upload = self._get_channel_name(
             'upload')  # erika/1/upload
-        self.channel_keystrokes = self.__get_channel_name('keystrokes')
+        self.channel_keystrokes = self._get_channel_name('keystrokes')
         self.channel_print_all = b'erika/print/all'
 
-    def __get_channel_name(self, channel_name: str):
+    def _get_channel_name(self, channel_name: str):
         return b'erika/{channel_name}/{erika_id}'.format(erika_id=self.uuid, channel_name=channel_name)
 
     async def start_mqqt_connection(self):
@@ -124,7 +124,7 @@ class ErikaMqqt:
 
         for plugin in self.plugins:
             if plugin.active:
-                channel = self.__get_channel_name(plugin.topic)
+                channel = self._get_channel_name(plugin.topic)
                 print("Subscribing PLUGIN to Channel: {}".format(channel))
                 await client.subscribe(topic=channel, qos=0)
         asyncio.create_task(self.set_status(self.ERIKA_STATE_LISTENING))

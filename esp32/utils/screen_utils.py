@@ -8,7 +8,7 @@ import gc
 from utils.timeit import timed_function
 
 try:
-  from st7789 import BLACK, BLUE, RED, GREEN, CYAN, MAGENTA, YELLOW, WHITE
+  from st7789 import BLACK, BLUE, RED, GREEN, CYAN, MAGENTA, YELLOW, WHITE, SLOW
 except:
   pass # not a TTGO_T_DISPLAY
 
@@ -127,8 +127,8 @@ class Screen:
 
 
   def show_image(self, name, x=0, y=0):
-
-      self.display.jpg(f"res/{name}.jpg", x, y) #jpg(jpg_filename, x, y [, method])
+      gc.collect
+      self.display.jpg(f"res/{name}.jpg", x, y, SLOW) #jpg(jpg_filename, x, y [, method])
 
 
   def _get_line(self, line, font_max_height, scale):
@@ -200,22 +200,9 @@ class Screen:
       self.write_to_screen(ip,line=2)
     self.write_to_screen(str(round(time.ticks_ms()/1000)), line=3)
     #self.write_to_screen(f"{randint(1000, 999999)}", line=4)
-    pass
-
-  # def starting(self, display_type = "D_DUINO"):
-  #   if self.display_type == DisplayType.OLED:
-  #         oled = self.display
-  #   display_type_enum = getattr(DisplayType, display_type)
-  #   oled = inizilize(display_type=display_type_enum)
-  #   oled = reset(5)
-  #   write_to_screen('Erika loading...', line=1, centered=True)
-
-  
+    pass  
   
   def show_progress(self, progress=0, max=100, line=4):
-        
-   
-
     if self.display_type == DisplayType.OLED:
       margin = 10
       oled = self.display
@@ -280,33 +267,18 @@ class Screen:
       tft.rect(margin, y_from, tft_width-2*margin, line_height, WHITE) # outer rect
       self.progress_last = progress, max
 
-
-      
-
-
-  # class Display:
-        
-  #   def __init__(self, display=None, display_type:DisplayType=None):
-  #         self.display = display
-  #         self.display_type=display_type
-  #         if self.display_type == DisplayType.OLED:
-  #           self.line_height = 10
-  #         else:
-  #           self.line_height = 10
-                    
-
     
-
-
-  # def show_qr_code(data="http://erika-cloud.de", size=1):
-      # from uQR import QRCode
-  #   oled = inizilize()
-  #   oled = reset(5)
-  #   print("making QRcode")
-  #   qr = QRCode()
-  #   qr.add_data(data)
-  #   matrix = qr.get_matrix()
-  #   for line_num, line_data in enumerate(matrix):
-  #     for row_num, row_data in enumerate(line_data):
-  #       oled.pixel(line_num, row_num, row_data)
-  #   oled.show()
+  def show_qr_code(self, data="http://erika-cloud.de", size=1):
+    import gc
+    gc.collect()
+    #from uQR import QRCode
+    tft = self.display
+    
+    print("making QRcode")
+    qr = QRCode()
+    qr.add_data(data)
+    matrix = qr.get_matrix()
+    for line_num, line_data in enumerate(matrix):
+      for row_num, row_data in enumerate(line_data):
+        tft.pixel(line_num, row_num, row_data)
+    tft.show()
