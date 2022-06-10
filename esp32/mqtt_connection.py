@@ -23,20 +23,22 @@ class ErikaMqqt:
 
     def __init__(self, erika, mqqt_id='erika', erika_id='1'):
         self.uuid = ubinascii.hexlify(machine.unique_id()).decode()
-    
+
         self.erika = erika
         self.mqqt_id = b'{}_{}'.format(mqqt_id, self.uuid)
         self.erika_id = self.uuid
         self.client = None
         self.plugins = []
 
-        self.channel_status = self.__get_channel_name('status') # erika/1/status
-        self.channel_print = self.__get_channel_name('print') # erika/1/print
-        self.channel_upload = self.__get_channel_name('upload') # erika/1/upload
+        self.channel_status = self.__get_channel_name(
+            'status')  # erika/1/status
+        self.channel_print = self.__get_channel_name('print')  # erika/1/print
+        self.channel_upload = self.__get_channel_name(
+            'upload')  # erika/1/upload
         self.channel_keystrokes = self.__get_channel_name('keystrokes')
         self.channel_print_all = b'erika/print/all'
 
-    def __get_channel_name(self, channel_name:str):
+    def __get_channel_name(self, channel_name: str):
         return b'erika/{channel_name}/{erika_id}'.format(erika_id=self.uuid, channel_name=channel_name)
 
     async def start_mqqt_connection(self):
@@ -67,7 +69,7 @@ class ErikaMqqt:
 
         try:
             await self.client.connect()
-        except OSError: # type: ignore
+        except OSError:  # type: ignore
             print('Connection failed.')
             print('Connection failed. Retrying.')
             await asyncio.sleep_ms(3000)
@@ -95,12 +97,13 @@ class ErikaMqqt:
             linefeed = True
             if "all" in topic:
                 if json.loads(msg_str)["sender"] == self.erika_id:
-                    return # break, if our erika is the sender
+                    return  # break, if our erika is the sender
                 msg_str = json.loads(msg_str)["text"]
-                
-            asyncio.create_task(self.erika.print_text(msg_str, linefeed=linefeed))
+
+            asyncio.create_task(self.erika.print_text(
+                msg_str, linefeed=linefeed))
             # set status needs to be changed. Needs to be set in printer and checked by mqqt in some loop
-      
+
     # Changes the status of this Erika on the erika/n/status channel
     # status: ERIKA_STATE_OFFLINE, ERIKA_STATE_LISTENING, ERIKA_STATE_PRINTING
 
@@ -114,14 +117,16 @@ class ErikaMqqt:
 
     # If you connect with clean_session True, must re-subscribe (MQTT spec 3.1.2.4)
     async def conn_han(self, client):
-        print("Subscribing to Channel: {}".format(self.channel_print))
+        print("Subscribing to Channels: {}, {}".format(
+            self.channel_print, self.channel_print_all))
         await client.subscribe(topic=self.channel_print, qos=0)
         await client.subscribe(topic=self.channel_print_all, qos=0)
-    
+
         for plugin in self.plugins:
-            channel = self.__get_channel_name(plugin.topic)
-            print("Subscribing PLUGIN to Channel: {}".format(channel))
-            await client.subscribe(topic=channel, qos=0)
+            if plugin.active:
+                channel = self.__get_channel_name(plugin.topic)
+                print("Subscribing PLUGIN to Channel: {}".format(channel))
+                await client.subscribe(topic=channel, qos=0)
         asyncio.create_task(self.set_status(self.ERIKA_STATE_LISTENING))
 
     # "Upload" a textfile via mqqt
@@ -148,9 +153,10 @@ class ErikaMqqt:
             screen.show_progress(progress=i, max=file_line_count)
         f.close()
         process_time = round((time.ticks_ms() - start_time) / 1000)
-        screen.write_to_screen("Ok. {} in {}s".format(i, process_time), margin=5)
+        screen.write_to_screen(
+            "Ok. {} in {}s".format(i, process_time), margin=5)
 
-        EMAIL_FROM='electronic@erika-cloud.de'
+        EMAIL_FROM = 'electronic@erika-cloud.de'
         # send command to send the email
         command_json = {"cmd": "email",
                         "hashid": hashid,

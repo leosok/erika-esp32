@@ -58,8 +58,6 @@ class Erika:
         cts = Pin(cts_pin, Pin.OUT)
         cts.off
 
-        self.sender = self.Sender(self)
-        self.action_controller = self.ActionController(self)
         # Queues for the printer + promts
         self.queue_print = Queue()
         self.queue_prompt = Queue()
@@ -67,9 +65,13 @@ class Erika:
         # will be used for MQQT-Status
         self.is_printing = False
         self.is_prompting = False
-
+        
         self.keyboard_echo = True
         self.mqqt_send_keystrokes = True
+
+        # Sender and ActionController
+        self.sender = self.Sender(self)
+        self.action_controller = self.ActionController(self)
         
         # page settings
         self.lines_per_page = self.LINES_PER_PAGE['LINE_SPACING_20']
@@ -308,15 +310,16 @@ class Erika:
         def __init__(self, erika:Erika = None): #type: ignore
             self.erika = erika
             self.action_promt_string = erika.ACTION_PROMT_STRING
+            self.mqqt_send_keystrokes = erika.mqqt_send_keystrokes
 
         docs = {
             "p": "Papiereinzug",
             "hallo": "Print Hallo Welt",
-            "hilfe": "Diese Hilfe drucken",
             "typing": "Tastatur ON/OFF",
             "send": "Gesendete Texte als Email an mich senden",
             "clear": "Löscht die zwischengespeicherten Texte",
-            "reset": "Setzt alle Einstellungen (z.B. Wifi) zurück und startet neu."
+            "reset": "Setzt alle Einstellungen (z.B. Wifi) zurück und startet neu.",
+            "hilfe": "Diese Hilfe drucken"
         }
 
         def start_action_promt(self):
@@ -333,6 +336,7 @@ class Erika:
                 control_string = input[-len(input) + c_string_start:]
                 # Keyboard was off for "start_action_promt", set it back to original state
                 self.erika.sender.set_keyboard_echo(self.erika.keyboard_echo)
+                self.erika.mqqt_send_keystrokes = self.mqqt_send_keystrokes
                 self.erika.screen.write_to_screen("Action: {}".format(control_string))
                 self.action(control_string)
             else:
@@ -362,20 +366,17 @@ class Erika:
                 print("Could not execute '{}'".format(action_str))
 
         async def p(self):
-            info = '''feeds paper'''
+            '''feeds paper'''
             self.erika.sender.paper_feed()
-            return info
 
         async def keycast(self, is_active):
             '''Send every key typed to MQQT'''
             self.erika.mqqt_send_keystrokes = is_active
-            self.screen.write_to_screen("Keycast: {}".format(is_active))
 
         async def hallo(self):
-            info = '''Prints a "hello"'''
+            '''Prints a "hello"'''
             asyncio.sleep(1)
             await self.erika.print_text('Hallo, Du!')
-            return info
 
         async def send(self):
             '''Send as Mail'''
@@ -403,24 +404,18 @@ class Erika:
             self.erika.screen.write_to_screen("Typing: {}".format(is_active))
 
         async def hilfe(self):
-            parent_class = self
-            method_list = [func for func in dir(parent_class) if \
-                callable(getattr(parent_class, func)) and not func.startswith('_')]
-            print(method_list)
-            help_str = 'Funktionen der Erika.\n\n 3 x Taste REL drücken, Funktion eingeben, dann Enter.\n\n'
-            for method in method_list:
-                if self.docs.get(method):
-                    # ignore all methods we did not document
-                    help_str += ' --- ' + method.upper() + ' ---' + '\n'
-                    help_str += self.docs.get(method) + '\n'
-                    help_str += '\n'
-            
-            await self.erika.print_text(help_str)
+           help_str = 'Funktionen der Erika.\n\n 3 x Taste REL drücken, Funktion eingeben, dann Enter.\n\n'
+           for key,value in self.docs.items():
+                # ignore all methods we did not document
+                help_str += ' --- ' + key.upper() + ' ---' + '\n'
+                help_str += value + '\n'
+                help_str += '\n'        
+           await self.erika.print_text(help_str)
 
 
     class Sender:
 
-        def __init__(self, erika:erika=None):
+        def __init__(self, erika:erika=None): # type: ignore
             self.erika = erika
 
         def alarm(self, duration=30):
