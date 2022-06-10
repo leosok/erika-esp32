@@ -1,0 +1,54 @@
+<html>
+
+<head>
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <link rel="stylesheet" href="/static/css/main_receiver.css">
+
+<script>
+    
+     const config = {
+        MQQT_SERVER: "{{config['MQQT_SERVER']}}",
+        MQQT_USERNAME: "{{config['MQQT_USERNAME']}}",
+        MQQT_PASSWORD: "{{config['MQQT_PASSWORD']}}",
+        topic_keycast: "{{config['topic_keycast']}}",
+        topic_status:  "{{config['topic_status']}}"
+        
+    }
+
+</script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
+  <script src="/static/js/receiver.js" type="text/javascript"></script>
+
+
+  <title>Erika Receiver</title>
+
+  <style>
+
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="logo_contrainer">
+      <!-- <img src="img/erika_cloud_logo.gif"/> -->
+      <h1>receiver</h1>
+    </div>
+  </div>
+  <div class="content">
+    <p class="status">Status: <span id="status"></span></p>
+    <textarea id="erika_text" placeholder="Waiting for connection..."></textarea>
+    <div id="buttons_container">
+      <button id="print_button" class="half" type="submit"
+        onclick="send_mqtt_msg(client, 'erika/1/print')">Drucken</button>
+      <div style="width: 4%; display: block; float: left;">&nbsp;</div>
+      <button id="download_button" class="half" type="submit" onclick="download('erika_text')">Download</button>
+    </div>
+  </div>
+</body>
+
+</html>

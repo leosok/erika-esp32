@@ -81,6 +81,20 @@ def single(hashid):
 
 
 #####################################################
+##                  Keycast                        ##
+#####################################################
+
+@route('/keycast/<uuid>')
+@view('receiver.tpl.html')
+def keycast_receiver(uuid):
+   from secrets import MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD
+   topic_keycast = "erika/keystrokes/{}".format(uuid)
+   topic_status = "erika/status/{}".format(uuid)
+   return dict(config={"MQQT_SERVER": MQQT_SERVER, "MQQT_USERNAME": MQQT_USERNAME, "MQQT_PASSWORD": MQQT_PASSWORD, 
+        "erika_uuid": uuid, "topic_keycast": topic_keycast, "topic_status": topic_status})
+
+
+#####################################################
 ##                  EMAILS                         ##
 #####################################################
 
@@ -91,6 +105,7 @@ def erika_single(uuid):
     emails = typewriter.messages.dicts()
 
     return dict(emails=emails)
+
 
 @route('/erika/<erika_name>')
 @view('erika_single.tpl.html')
@@ -208,6 +223,7 @@ def typewriter_print(uuid):
     typerwiter = Typewriter.get(Typewriter.uuid == uuid)
     print_on_erika(typerwiter, request.json['body'])
     return HTTPResponse(status=200, body=f"Printing on `{typerwiter.erika_name.capitalize()}`")
+
 
 @route('/typewriters/online', method='GET')
 @view('typewriters_select.tpl.html')
