@@ -14,7 +14,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/
@@ -135,6 +134,7 @@ web_server_mqqt_receiver/.vscode/
 # Tokens
 web_client_mqqt/mqqt_config.js
 esp32/secrets.py
+erika_cloud/secrets.py
 esp32/saved_lines.txt
 
 web_server_mqqt_receiver/pyvenv.cfg
