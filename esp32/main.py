@@ -5,6 +5,7 @@ print("main.py: Hello")
 from utils.misc import status_led
 import utils.screen_utils as screen
 from config import UserConfig, BoardConfig
+import gc
 
 board_config = BoardConfig()
 
@@ -14,7 +15,14 @@ screen = screen.Screen(board_type=board_config.screen_display_type)
 screen.splash_screen("starting...")
 
 # screen.starting(display_type=board_config.screen_display_type)
-#screen.show_qr_code()
+gc.collect()
+print(gc.mem_free())
+import ubinascii, machine, time
+uuid = ubinascii.hexlify(machine.unique_id()).decode()
+screen.show_qr_code(data = "http://www.erika-cloud.de/keycast/{}".format(uuid), scale=3)
+gc.collect()
+time.sleep(3)
+print(gc.mem_free())
 
 import time
 from mqtt_connection import ErikaMqqt
@@ -41,8 +49,7 @@ async def start_all(erika:Erika, mqqt:ErikaMqqt):
        erika.receiver(),
        erika.printer(erika.queue_print),
        erika_mqqt.start_mqqt_connection(),
-       wlan_strength(user_config)
-    )
+       wlan_strength(user_config)    )
 
 async def start_config(erika:Erika):
     # Schedule three calls *concurrently*:

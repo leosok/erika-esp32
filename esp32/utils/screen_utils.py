@@ -62,6 +62,7 @@ class Screen:
         self.display = self.get_tft()
         self.display_type = DisplayType.TFT
 
+
   def reset(self, lines=4, color=0):
         self.display.fill_rect(0, 0, self.display.width, self.line_height + lines*self.line_height, color)
         return True
@@ -268,17 +269,37 @@ class Screen:
       self.progress_last = progress, max
 
     
-  def show_qr_code(self, data="http://erika-cloud.de", size=1):
+  def show_qr_fast(self, matrix, scale=4, x_offset=0, y_offset=0, color=MAGENTA):
+    display = self.display
+    display.fill(0)
+    color = color
+    for y in range(len(matrix)):
+        scaled_y = y * scale # Scaling the bitmap by 2
+        for x in range(len(matrix[0])):      # because my screen is tiny.
+            scaled_x = x*scale
+            value = matrix[int(y)][int(x)]   # Inverting the values because
+            pixel_color = color if value else 0x0000
+            if value:
+                display.fill_rect(scaled_x + x_offset,
+                                  scaled_y,
+                                  scale,
+                                  scale,
+                                  pixel_color)
+
+
+  def show_qr_code(self, data="http://erika-cloud.de", scale=4):
     import gc
+    import sys
     gc.collect()
-    #from uQR import QRCode
-    tft = self.display
-    
+    from uQR import QRCode
     print("making QRcode")
     qr = QRCode()
     qr.add_data(data)
     matrix = qr.get_matrix()
-    for line_num, line_data in enumerate(matrix):
-      for row_num, row_data in enumerate(line_data):
-        tft.pixel(line_num, row_num, row_data)
-    tft.show()
+    self.show_qr_fast(matrix, scale=scale, x_offset=40, y_offset=10)
+
+    del qr
+    del matrix
+    del QRCode
+    del sys.modules["uQR"]
+    gc.collect()

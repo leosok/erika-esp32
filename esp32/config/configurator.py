@@ -1,7 +1,7 @@
 import os 
 import json
 import uasyncio as asyncio  # pylint: disable=import-error
-import urequests  # pylint: disable=import-error
+import mrequests as requests  # pylint: disable=import-error
 import machine  # pylint: disable=import-error
 from erika import Erika
 from utils.network_utils import scan_wlan, get_wlan_strength, do_connect
@@ -209,7 +209,7 @@ class UserConfig:
             "chat_active" : True
             }
         
-        resp = urequests.post(url=self.ERIKA_CLOUD_HOST + '/typewriter', json=typewriter_config)
+        resp = requests.post(url=self.ERIKA_CLOUD_HOST + '/typewriter', json=typewriter_config)
         print("Server returned: {}".format(resp.status_code))
         erika_returned_mail = resp.json()['erika_mail']
         #todo: make chat un-optable
