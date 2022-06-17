@@ -63,7 +63,7 @@ class ErikaMqqt:
         config['wifi_pw'] = user_config.wlan_password
 
         config['client_id'] = self.mqqt_id
-        # config['clean'] = False
+        config['ssl'] = True
 
         self.client = MQTTClient(config)
 
