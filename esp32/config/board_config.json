@@ -1,15 +1,21 @@
 {
-    "__board_name":"WIFI_KIT",
+    "__board_name":"TTGO_T_DISPLAY",
+    "__use":"Copy this file to config/board_config.json",
 
     "__comment":"This file will not be synchronized by Pymakr",
 
-    "erika_rts" : 22,
-    "erika_cts" : 21,
-    "erika_rx" : 5,
-    "erika_tx" : 17,
+    "erika_rts" : 13,
+    "erika_cts" : 15,
+    "erika_rx" : 32,
+    "erika_tx" : 33, 
     
-    "screen_display_type": "WIFI_KIT",
-    "screen_rst" : 16,
-    "screen_scl" : 15,
-    "screen_sda" : 4
+    "screen_display_type": "TTGO_T_DISPLAY",
+
+    "_sck": 18,
+    "_mosi": 19,
+    "_miso": 2,
+    "_cs":5,
+    "_reset":23,
+    "_dc":16
 }
+

@@ -9,7 +9,7 @@ import time
 from machine import Timer
 from erika import Erika
 from config.mqqt_config import MqqtConfig
-from config.board_config import BoardConfig
+from config.user_config import UserConfig
 from utils.misc import status_led
 import ubinascii
 import machine

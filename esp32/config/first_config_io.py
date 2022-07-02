@@ -1,4 +1,4 @@
-from config import BoardConfig
+from .board_config import BoardConfig
 
 async def get_config_io(self, erika:Erika):
 

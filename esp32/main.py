@@ -13,8 +13,8 @@ deb.start("Register Plugins")
 from plugins import register_plugins
 deb.done()
 from utils.screen_utils import Screen
-from boot import display
-Screen = Screen(display=display)
+#from boot import display
+screen = Screen(display=display)
 
 from utils.network_utils import do_connect, scan_wlan
 
@@ -55,11 +55,10 @@ def set_time():
 ###############################
 #  ***      START       ***   #
 ###############################
-t_0 = time.ticks_ms()
-print(f"[start] loading Boardconfig:")
-from config import BoardConfig
+deb.start("load Boardconfig")
+from config.board_config import BoardConfig
 board_config = BoardConfig()
-print("[done] loading Boardconfig: {}ms, total: {}ms".format(time.ticks_diff(time.ticks_ms(),t_0), time.ticks_ms()))
+deb.done()
 
 erika = Erika(cts_pin=board_config.erika_cts, 
         rts_pin=board_config.erika_rts, 
@@ -67,14 +66,10 @@ erika = Erika(cts_pin=board_config.erika_cts,
         rx_pin=board_config.erika_rx,  
         screen=screen)   
 
-print(f"[start] loading UserConfig: {time.ticks_ms()}")
-from config import UserConfig
+deb.start("load Userconfig")
+from config.user_config import UserConfig
 user_config = UserConfig()
-print(f"[done] loading UserConfig: {time.ticks_ms()}")
-
-
-
-
+deb.done()
 
 # Here we have to xcheck, if a configuration is present.
 # If not, we need ot gather data from the user.

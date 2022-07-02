@@ -12,6 +12,7 @@ class Configurator:
                 data = json.load(f)
             for k, v in data.items():
                 setattr(self, k, v)
+            return True
         except:
             return False
 
