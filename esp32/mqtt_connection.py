@@ -8,7 +8,8 @@ import uasyncio as asyncio
 import time
 from machine import Timer
 from erika import Erika
-from config import MqqtConfig, UserConfig
+from config.mqqt_config import MqqtConfig
+from config.board_config import BoardConfig
 from utils.misc import status_led
 import ubinascii
 import machine

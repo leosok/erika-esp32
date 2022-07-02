@@ -4,10 +4,11 @@ machine.freq(240000000)
 from utils import debug_log
 deb = debug_log.Debuglogger()
 deb.start("import spashscreen")
-from utils.splash_screen import tft_splash_screen
+from utils.splash_screen import Display
 deb.done()
 deb.start("tft_spash_screen()")
-tft_splash_screen() 
+display=Display()
+display.splash_screen()
 deb.done()  
 # deb.start("import Screen")
 # from utils.screen_utils import Screen

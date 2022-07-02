@@ -1,8 +1,4 @@
-
-import time
 print("main.py: Hello")
-t_0 = time.ticks_ms()
-print(f"[start] main imports: {time.ticks_ms()}")
 import time
 from mqtt_connection import ErikaMqqt
 import ntptime
@@ -10,13 +6,15 @@ from erika import Erika
 import uasyncio as asyncio
 import network
 import machine
-print("[done] main imports: {}, total: {}".format(time.ticks_diff(time.ticks_ms(),t_0), time.ticks_ms()))
-print("[start] plugin imports")
-t_0 = time.ticks_ms()
+from utils import debug_log
+deb = debug_log.Debuglogger("main")
+deb.start("Register Plugins")
+
 from plugins import register_plugins
-print("[done] plugin imports: {}, total: {}".format(time.ticks_diff(time.ticks_ms(),t_0), time.ticks_ms()))
-
-
+deb.done()
+from utils.screen_utils import Screen
+from boot import display
+Screen = Screen(display=display)
 
 from utils.network_utils import do_connect, scan_wlan
 

@@ -22,15 +22,16 @@ class DisplayType:
     OLED = 0
     TFT = 1      
 
-class Screen:
+class Screen():
   #@timed_function    
-  def __init__(self, board_type = 'WIFI_KIT'):
+  def __init__(self, board_type = 'WIFI_KIT', display=None):
+    """
+    A Screen class build upon a 
+    """
 
-    print("Display is " + board_type)    
     board_type = getattr(BoardType, board_type)
 
-    
-    self.display = None
+    self.display = display
     self.display_type = None
     self.board_type = board_type
     # self.line_height = 10
@@ -58,7 +59,8 @@ class Screen:
     elif board_type == BoardType.TTGO_T_DISPLAY:
        
         self.line_buffer = {} #This dict will hold linenumbers + the last text
-        self.display = self.get_tft()
+        if not self.display:
+          self.display = self.get_tft()
         self.display_type = DisplayType.TFT
 
 

@@ -1,7 +1,6 @@
-import ujson as json
+from .configurator import Configurator
 
-
-class BoardConfig:
+class BoardConfig(Configurator):
     """
     Loads config from JSON (which is not)
     Returns: dict or False (if config_file cannot be opend)
@@ -21,19 +20,3 @@ class BoardConfig:
         self.screen_sda = None
 
         self.load()
-
-    def load(self):
-        """
-        Loads config from JSON
-        Returns: dict or False (if config_file cannot be opend)
-        """
-        try:
-            with open(self.CONF_FILE, 'r') as f:
-                data = json.load(f)
-            for k, v in data.items():
-                setattr(self, k, v)
-        except:
-            return False
-
-    def __repr__(self):
-        return str(self.__dict__)
