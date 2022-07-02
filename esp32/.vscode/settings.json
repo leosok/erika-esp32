@@ -27,5 +27,7 @@
         ".micropy\\esp32"
     ],
     "python.linting.flake8Enabled": false,
-    "python.languageServer": "Pylance"
+    "python.languageServer": "Pylance",
+    "python.autoComplete.addBrackets": true,
+    "python.analysis.completeFunctionParens": true
 }

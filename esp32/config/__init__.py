@@ -1,1 +1,1 @@
-from .configurator import UserConfig, MqqtConfig, BoardConfig
+#from .configurator import UserConfig, MqqtConfig, BoardConfig

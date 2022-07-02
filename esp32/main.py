@@ -1,4 +1,5 @@
 
+import time
 print("main.py: Hello")
 t_0 = time.ticks_ms()
 print(f"[start] main imports: {time.ticks_ms()}")
