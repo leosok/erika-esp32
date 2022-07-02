@@ -1,29 +1,7 @@
 
 print("main.py: Hello")
-
-# putting this up front to speed up
-from utils.misc import status_led
-import utils.screen_utils as screen
-from config import UserConfig, BoardConfig
-import gc
-
-board_config = BoardConfig()
-
-status_led(False)
-print("starting screen...")
-screen = screen.Screen(board_type=board_config.screen_display_type)
-screen.splash_screen("starting...")
-
-# screen.starting(display_type=board_config.screen_display_type)
-gc.collect()
-print(gc.mem_free())
-import ubinascii, machine, time
-uuid = ubinascii.hexlify(machine.unique_id()).decode()
-screen.show_qr_code(data = "http://www.erika-cloud.de/keycast/{}".format(uuid), scale=3)
-gc.collect()
-time.sleep(3)
-print(gc.mem_free())
-
+t_0 = time.ticks_ms()
+print(f"[start] main imports: {time.ticks_ms()}")
 import time
 from mqtt_connection import ErikaMqqt
 import ntptime
@@ -31,7 +9,13 @@ from erika import Erika
 import uasyncio as asyncio
 import network
 import machine
+print("[done] main imports: {}, total: {}".format(time.ticks_diff(time.ticks_ms(),t_0), time.ticks_ms()))
+print("[start] plugin imports")
+t_0 = time.ticks_ms()
 from plugins import register_plugins
+print("[done] plugin imports: {}, total: {}".format(time.ticks_diff(time.ticks_ms(),t_0), time.ticks_ms()))
+
+
 
 from utils.network_utils import do_connect, scan_wlan
 
@@ -53,10 +37,11 @@ async def start_all(erika:Erika, mqqt:ErikaMqqt):
 
 async def start_config(erika:Erika):
     # Schedule three calls *concurrently*:
+    from config import first_config_io
     await asyncio.gather(
        erika.receiver(),
        erika.printer(erika.queue_print),
-       UserConfig().get_config_io(erika)
+       first_config_io.get_config_io(erika)
     )
 
 def set_time():
@@ -71,14 +56,25 @@ def set_time():
 ###############################
 #  ***      START       ***   #
 ###############################
+t_0 = time.ticks_ms()
+print(f"[start] loading Boardconfig:")
+from config import BoardConfig
+board_config = BoardConfig()
+print("[done] loading Boardconfig: {}ms, total: {}ms".format(time.ticks_diff(time.ticks_ms(),t_0), time.ticks_ms()))
 
 erika = Erika(cts_pin=board_config.erika_cts, 
         rts_pin=board_config.erika_rts, 
         tx_pin=board_config.erika_tx,  
         rx_pin=board_config.erika_rx,  
-        screen=screen)
-        
+        screen=screen)   
+
+print(f"[start] loading UserConfig: {time.ticks_ms()}")
+from config import UserConfig
 user_config = UserConfig()
+print(f"[done] loading UserConfig: {time.ticks_ms()}")
+
+
+
 
 
 # Here we have to xcheck, if a configuration is present.

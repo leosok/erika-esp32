@@ -22,9 +22,8 @@ class DisplayType:
     OLED = 0
     TFT = 1      
 
-
 class Screen:
-      
+  #@timed_function    
   def __init__(self, board_type = 'WIFI_KIT'):
 
     print("Display is " + board_type)    
@@ -111,7 +110,6 @@ class Screen:
       tft.draw(font,"electronic",65,85, WHITE, 0.8)
 
 
-  @timed_function
   def work_on_tft(self):
         # from st7789 import BLUE
         # self.splash_screen(reset=True)

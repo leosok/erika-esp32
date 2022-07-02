@@ -322,6 +322,8 @@ class Erika:
             "hilfe": "Diese Hilfe drucken"
         }
 
+        active_functions = []
+
         def start_action_promt(self):
             self.erika.screen.write_to_screen("Enter Action")
             self.erika.sender.alarm()
@@ -337,7 +339,6 @@ class Erika:
                 # Keyboard was off for "start_action_promt", set it back to original state
                 self.erika.sender.set_keyboard_echo(self.erika.keyboard_echo)
                 self.erika.mqqt_send_keystrokes = self.mqqt_send_keystrokes
-                self.erika.screen.write_to_screen("Action: {}".format(control_string))
                 self.action(control_string)
             else:
                 return False
@@ -347,31 +348,35 @@ class Erika:
             print("Action: {}".format(action_str))
             try:
                 loop = asyncio.get_event_loop()
-                if '_on' in action_str.lower():
-                    method_name = action_str[:-len('_on')]
-                    method_to_call = getattr(self, method_name)
+                method_name = action_str
+                method_to_call = getattr(self, method_name)
+                if method_name not in self.active_functions:
+                    self.active_functions.append(method_name)
                     method_attr = True
+                else:    
+                    self.active_functions.remove(method_name)
+                    method_attr = False        
+                try:
                     loop.create_task(method_to_call(method_attr))
-                elif '_off' in action_str.lower():
-                    method_name = action_str[:-len('_off')]
-                    method_to_call = getattr(self, method_name)
-                    method_attr = False
-                    loop.create_task(method_to_call(method_attr))
-                else:
-                    # TODO: everything to Async!
-                    method_to_call = getattr(self, action_str)
+                    self.erika.screen.write_to_screen("{}: {}".format(method_name, method_attr))
+                except TypeError: # type: ignore
+                    # The function did not take an argument
                     loop.create_task(method_to_call())
+                self.erika.screen.write_to_screen("Action: {}".format(action_str))
 
             except AttributeError: # type: ignore
                 print("Could not execute '{}'".format(action_str))
+                self.erika.screen.write_to_screen("No Action: {}".format(action_str))
+
 
         async def p(self):
             '''feeds paper'''
             self.erika.sender.paper_feed()
 
-        async def keycast(self, is_active):
+        async def keycast(self, is_active=None):
             '''Send every key typed to MQQT'''
             self.erika.mqqt_send_keystrokes = is_active
+            self.erika.sender.set_keyboard_echo(not is_active)
 
         async def hallo(self):
             '''Prints a "hello"'''
@@ -397,12 +402,13 @@ class Erika:
             self.erika.screen.write_to_screen("Reset: {}".format(result))
             reset()
 
-        async def typing(self, is_active):
+        async def typing(self, is_active=None):
             '''Typing echo on/off"'''
+            if is_active == None:
+                self.active_functions.pop()
             print("Typing: {}".format(is_active))
             self.erika.sender.set_keyboard_echo(is_active)
-            self.erika.screen.write_to_screen("Typing: {}".format(is_active))
-
+        
         async def hilfe(self):
            help_str = 'Funktionen der Erika.\n\n 3 x Taste REL drücken, Funktion eingeben, dann Enter.\n\n'
            for key,value in self.docs.items():
