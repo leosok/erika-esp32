@@ -14,7 +14,12 @@ from plugins import register_plugins
 deb.done()
 from utils.screen_utils import Screen
 #from boot import display
-screen = Screen(display=display)
+
+deb.start("load Boardconfig")
+from config.board_config import BoardConfig
+board_config = BoardConfig()
+deb.done()
+screen = Screen(board_type=board_config.screen_display_type)
 
 from utils.network_utils import do_connect, scan_wlan
 
@@ -55,10 +60,7 @@ def set_time():
 ###############################
 #  ***      START       ***   #
 ###############################
-deb.start("load Boardconfig")
-from config.board_config import BoardConfig
-board_config = BoardConfig()
-deb.done()
+
 
 erika = Erika(cts_pin=board_config.erika_cts, 
         rts_pin=board_config.erika_rts, 
