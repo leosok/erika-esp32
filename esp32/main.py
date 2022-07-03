@@ -1,5 +1,21 @@
 print("main.py: Hello")
-import time
+deb = debug_log.Debuglogger("main")
+
+deb.start("load Boardconfig")
+from config.board_config import BoardConfig
+board_config = BoardConfig()
+deb.done()
+
+deb.start("preparing screen")
+from utils.screen_utils import Screen
+screen = Screen(board_type=board_config.screen_display_type, display=display_obj.display)
+deb.done()
+deb.start("spash")
+screen.splash_screen()
+deb.done()
+
+
+deb.start("imports")
 from mqtt_connection import ErikaMqqt
 import ntptime
 from erika import Erika
@@ -7,22 +23,9 @@ import uasyncio as asyncio
 import network
 import machine
 from utils import debug_log
-deb = debug_log.Debuglogger("main")
-deb.start("Register Plugins")
-
 from plugins import register_plugins
-deb.done()
-from utils.screen_utils import Screen
-#from boot import display
-
-deb.start("load Boardconfig")
-from config.board_config import BoardConfig
-board_config = BoardConfig()
-deb.done()
-screen = Screen(board_type=board_config.screen_display_type)
-
 from utils.network_utils import do_connect, scan_wlan
-
+deb.done()
 
 async def wlan_strength(user_config:UserConfig, max=5):
     while True:

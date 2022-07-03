@@ -70,6 +70,7 @@ class Screen():
 
 
   def get_tft(self):
+      print("Screen: get_tft")
       try:
         import st7789
       except ImportError as e: # type: ignore

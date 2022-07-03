@@ -7,8 +7,8 @@ deb.start("import spashscreen")
 from utils.splash_screen import Display
 deb.done()
 deb.start("tft_spash_screen()")
-display=Display()
-display.splash_screen()
+display_obj=Display()
+display_obj.splash_screen()
 deb.done()  
 
 #import webrepl
