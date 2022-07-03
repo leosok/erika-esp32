@@ -47,11 +47,8 @@ class Display:
         tft_width = tft.width()
         progress_filled_width = round((tft_width - 2*margin) / max * progress)
         progress_filled_width_last = round((tft_width - 2*margin) / max * progress_last)
-
-        print(f"{progress}:{progress_filled_width}")
         
         if redraw:
-                print(f"redrawing: {max_last}:{max}")
                 reset_rect = (margin+1, #x
                         y_from+1, #y
                         tft_width-margin-1, #width
@@ -70,7 +67,6 @@ class Display:
                         progress_filled_width-progress_filled_width_last, #width
                         bar_height, #height
                         WHITE)
-            print("white_rect", white_rect)
             tft.fill_rect(*white_rect)
 
         elif progress_last > progress:
@@ -80,7 +76,6 @@ class Display:
                         fill_black_width, #width
                         bar_height, #height
                         BLACK) # color
-            print("black_rect", black_rect)
             tft.fill_rect(*black_rect) # color
 
         #rect(x, y, width, height, color)

@@ -8,17 +8,15 @@ display_obj=Display()
 display_obj.splash_screen()
 print(time.ticks_ms())
 
-display_obj.show_progress(progress=0, max=10, y_from=110, bar_height=10)
-
+# Loading Screen
 timer = machine.Timer(0)
 interruptCounter = 0
-def handleInterrupt(timer):
+def draw_loading_progress(timer):
     global interruptCounter
-    interruptCounter = interruptCounter+1
     global display_obj
     display_obj.show_progress(progress=interruptCounter, max=10, y_from=110, bar_height=10)
-    #print(f"interruptCounter {interruptCounter} {time.ticks_ms()}")
-    if interruptCounter >= 10:
+    interruptCounter = interruptCounter+1
+    if interruptCounter >= 11:
         timer.deinit()
 
-timer.init(period=1000, mode=machine.Timer.PERIODIC, callback=handleInterrupt)
+timer.init(period=1000, mode=machine.Timer.PERIODIC, callback=draw_loading_progress)
