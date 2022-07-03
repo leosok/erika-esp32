@@ -60,7 +60,7 @@ class Screen():
        
         self.line_buffer = {} #This dict will hold linenumbers + the last text
         if not self.display:
-          self.display = self.get_tft()
+              self.display = self.get_tft()
         self.display_type = DisplayType.TFT
 
 
