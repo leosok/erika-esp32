@@ -1,4 +1,5 @@
 print("main.py: Hello")
+from utils import debug_log
 deb = debug_log.Debuglogger("main")
 
 deb.start("load Boardconfig")

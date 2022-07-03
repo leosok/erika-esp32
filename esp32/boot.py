@@ -1,15 +1,24 @@
 # boot.py
 import machine
 machine.freq(240000000)
-from utils import debug_log
-deb = debug_log.Debuglogger()
-deb.start("import spashscreen")
+import time
+print(time.ticks_ms())
 from utils.splash_screen import Display
-deb.done()
-deb.start("tft_spash_screen()")
 display_obj=Display()
 display_obj.splash_screen()
-deb.done()  
+print(time.ticks_ms())
 
-#import webrepl
-#webrepl.start()
+display_obj.show_progress(progress=0, max=10, y_from=110, bar_height=10)
+
+timer = machine.Timer(0)
+interruptCounter = 0
+def handleInterrupt(timer):
+    global interruptCounter
+    interruptCounter = interruptCounter+1
+    global display_obj
+    display_obj.show_progress(progress=interruptCounter, max=10, y_from=110, bar_height=10)
+    #print(f"interruptCounter {interruptCounter} {time.ticks_ms()}")
+    if interruptCounter >= 10:
+        timer.deinit()
+
+timer.init(period=1000, mode=machine.Timer.PERIODIC, callback=handleInterrupt)
