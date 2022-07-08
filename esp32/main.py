@@ -47,7 +47,7 @@ async def start_all(erika:Erika, mqqt:ErikaMqqt):
        erika.printer(erika.queue_print),
        erika_mqqt.start_mqqt_connection(),
        #wlan_strength(user_config)    
-       sp_w, sp_c)
+       sp_w)#, sp_c)
 
 async def start_config(erika:Erika):
     # Schedule three calls *concurrently*:
