@@ -14,6 +14,11 @@ deb.done()
 deb.start("spash")
 screen.splash_screen()
 deb.done()
+# screen.show_image("mqqt4",200,10)
+# screen.show_image("mqqt5",200,50)
+# screen.show_image("mqqt3",200,80)
+sp_c = screen.play_sprite(name="cloud_sprites2", width_height=40, frames=2, play_reverse=True, pause_sec=0.7)
+sp_w = screen.play_sprite(x=150)
 
 
 deb.start("imports")
@@ -41,7 +46,8 @@ async def start_all(erika:Erika, mqqt:ErikaMqqt):
        erika.receiver(),
        erika.printer(erika.queue_print),
        erika_mqqt.start_mqqt_connection(),
-       wlan_strength(user_config)    )
+       #wlan_strength(user_config)    
+       sp_w, sp_c)
 
 async def start_config(erika:Erika):
     # Schedule three calls *concurrently*:
@@ -86,7 +92,7 @@ if user_config.load():
     #set_time()
     erika_mqqt = ErikaMqqt(erika=erika)
     erika.mqqt_client = erika_mqqt
-    screen.write_to_screen("Erika",line=1,reset=True)
+    screen.splash_screen(reset=True)#write_to_screen("Erika",line=1,reset=True)
     
     register_plugins(erika=erika, erika_mqqt=erika_mqqt)
 

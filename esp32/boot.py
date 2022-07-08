@@ -1,22 +1,23 @@
 # boot.py
 import machine
-machine.freq(240000000)
 import time
 print(time.ticks_ms())
-from utils.splash_screen import Display
-display_obj=Display()
-display_obj.splash_screen()
+#from utils.splash_screen import Display
+# import splash_screen
+# display_obj=splash_screen.Display()
+# display_obj.splash_screen()
+# already done in frozen modules
 print(time.ticks_ms())
 
 # Loading Screen
 timer = machine.Timer(0)
 interruptCounter = 0
-def draw_loading_progress(timer):
-    global interruptCounter
-    global display_obj
-    display_obj.show_progress(progress=interruptCounter, max=10, y_from=110, bar_height=10)
-    interruptCounter = interruptCounter+1
-    if interruptCounter >= 11:
-        timer.deinit()
+# def draw_loading_progress(timer):
+#     global interruptCounter
+#     global display_obj
+#     display_obj.show_progress(progress=interruptCounter, max=10, y_from=110, bar_height=10)
+#     interruptCounter = interruptCounter+1
+#     if interruptCounter >= 11:
+#         timer.deinit()
 
-timer.init(period=1000, mode=machine.Timer.PERIODIC, callback=draw_loading_progress)
+# timer.init(period=1000, mode=machine.Timer.PERIODIC, callback=draw_loading_progress)

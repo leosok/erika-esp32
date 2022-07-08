@@ -1,6 +1,7 @@
 # screen_utils.py
 # pyright: reportMissingImports=false, reportUnusedVariable=warning
 
+import uasyncio as asyncio
 from machine import SoftI2C, SoftSPI, Pin, sleep
 from random import randint
 import time
@@ -11,6 +12,7 @@ try:
   from st7789 import BLACK, BLUE, RED, GREEN, CYAN, MAGENTA, YELLOW, WHITE, SLOW
 except:
   pass # not a TTGO_T_DISPLAY
+
 
 
 class BoardType:
@@ -131,6 +133,36 @@ class Screen():
   def show_image(self, name, x=0, y=0):
       gc.collect
       self.display.jpg(f"res/{name}.jpg", x, y, SLOW) #jpg(jpg_filename, x, y [, method])
+
+
+  async def play_sprite(self, name="wlan_sprites", width_height=30, frames=4, pause_sec=0.3, x=15, y=10, play_reverse=True):
+      i = 0
+      reverse = play_reverse
+      while True:
+          gc.collect
+          x_start = i * width_height # move to i'th frame
+          y_start = 0
+          #print(f"{i}:{x_start}")
+          buffer, width, height = self.display.jpg_decode(f"res/{name}.jpg", x_start, y_start, width_height, width_height) 
+          self.display.blit_buffer(buffer, x, y, width, height)
+          buffer = None
+          gc.collect
+          if play_reverse:
+            if reverse:
+              i += 1
+              if i == frames-1:
+                reverse = not reverse
+            else:
+              i -= 1
+              if i == 0:
+                reverse = not reverse
+          else:
+            i+=1
+            if i == frames:
+              i=0
+          await asyncio.sleep(pause_sec)
+          #time.sleep(pause_sec)
+
 
 
   def _get_line(self, line, font_max_height, scale):
@@ -269,7 +301,7 @@ class Screen():
       tft.rect(margin, y_from, tft_width-2*margin, line_height, WHITE) # outer rect
       self.progress_last = progress, max
 
-    
+  
   def show_qr_fast(self, matrix, scale=4, x_offset=0, y_offset=0, color=MAGENTA):
     display = self.display
     display.fill(0)
@@ -304,3 +336,20 @@ class Screen():
     del QRCode
     del sys.modules["uQR"]
     gc.collect()
+
+
+  def info_label(self, x=0, y=0, text="WLAN", scale=0.65, icon=None, color=WHITE):
+      display=self.display
+      import romand as font 
+      # import meteo as font 
+      BG_COLOR = BLACK
+      scale = 0.65
+      display.draw(font, text, x, y , color ,scale)
+
+     
+
+          
+
+
+      pass
+  
