@@ -52,6 +52,7 @@ async def start_all(erika:Erika, mqqt:ErikaMqqt):
 async def start_config(erika:Erika):
     # Schedule three calls *concurrently*:
     from config import first_config_io
+    erika.mqqt_send_keystrokes = False
     await asyncio.gather(
        erika.receiver(),
        erika.printer(erika.queue_print),

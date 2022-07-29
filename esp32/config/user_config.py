@@ -1,5 +1,6 @@
 
 from .configurator import Configurator
+import json
 
 class UserConfig(Configurator):
 
