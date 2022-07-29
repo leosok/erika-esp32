@@ -55,7 +55,7 @@ async def start_config(erika:Erika):
     await asyncio.gather(
        erika.receiver(),
        erika.printer(erika.queue_print),
-       first_config_io.get_config_io(erika)
+       first_config_io.FirstConfig().get_config_io(erika)
     )
 
 def set_time():
