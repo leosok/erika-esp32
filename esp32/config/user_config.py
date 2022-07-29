@@ -48,3 +48,4 @@ class UserConfig(Configurator):
             return True
         except:
             return False
+
