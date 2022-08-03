@@ -1,19 +1,10 @@
 print("main.py: Hello")
 from utils import debug_log
 deb = debug_log.Debuglogger("main")
-
-deb.start("load Boardconfig")
 from config.board_config import BoardConfig
 board_config = BoardConfig()
-deb.done()
-
-deb.start("preparing screen")
 from utils.screen_utils import Screen
 screen = Screen(board_type=board_config.screen_display_type, display=display_obj.display)
-deb.done()
-deb.start("spash")
-screen.splash_screen()
-deb.done()
 # screen.show_image("mqqt4",200,10)
 # screen.show_image("mqqt5",200,50)
 # screen.show_image("mqqt3",200,80)
@@ -79,10 +70,8 @@ erika = Erika(cts_pin=board_config.erika_cts,
         rx_pin=board_config.erika_rx,  
         screen=screen)   
 
-deb.start("load Userconfig")
 from config.user_config import UserConfig
 user_config = UserConfig()
-deb.done()
 
 # Here we have to xcheck, if a configuration is present.
 # If not, we need ot gather data from the user.
