@@ -81,14 +81,6 @@ class ErikaMqqt:
             asyncio.create_task(self.start_mqqt_connection())
             return
 
-    # async def send_to_printer(self, text):
-    #     await self.set_status(self.ERIKA_STATE_PRINTING)
-    #     await self.erika.queue.put(text)
-    #     await asyncio.sleep_ms(100)
-    #     while self.erika.is_printing:
-    #         await asyncio.sleep_ms(100)
-    #     await self.set_status(self.ERIKA_STATE_LISTENING)
-
     def sub_cb(self, topic, msg, retained):
         msg_str = str(msg, 'UTF-8')
         print(topic + ":" + msg_str)
@@ -119,7 +111,7 @@ class ErikaMqqt:
         print('Wifi is ', 'up' if state else 'down')
         if state == True:
             self.wifi_status_sprite.on(3)
-            self.mqqt_connection_sprite.show_frame(1)
+            self.mqqt_connection_sprite.on(on_frame=2)
         else:
             self.wifi_status_sprite.off()
             self.mqqt_connection_sprite.off()

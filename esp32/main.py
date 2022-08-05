@@ -15,7 +15,7 @@ screen = Screen(board_type=board_config.screen_display_type, display=display_obj
 from utils.sprite_utils import Sprite
 wifi_status_sprite = Sprite(name="wlan_sprites", display=screen.display)
 wifi_status_sprite.off()
-mqqt_status_sprite = Sprite(name="cloud_sprites", display=screen.display, x=195, y=13, frames=3)
+mqqt_status_sprite = Sprite(name="cloud_sprites", display=screen.display, x=195, y=13, frames=2)
 
 
 deb.start("imports")
