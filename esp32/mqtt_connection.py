@@ -15,7 +15,6 @@ import ubinascii
 import machine
 import gc
 import json
-from utils.sprite_utils import Sprite
 
 
 class ErikaMqqt:
@@ -44,7 +43,7 @@ class ErikaMqqt:
     def _get_channel_name(self, channel_name: str):
         return b'erika/{channel_name}/{erika_id}'.format(erika_id=self.uuid, channel_name=channel_name)
 
-    async def start_mqqt_connection(self, wifi_status_sprite:Sprite=None):
+    async def start_mqqt_connection(self, wifi_status_sprite:Sprite=None, mqqt_connection_sprite:Sprite=None):
         # moved here, so erika is not started by itself.
         print("Starting MQQT Connection")
 
@@ -69,6 +68,8 @@ class ErikaMqqt:
         config['ssl'] = True
 
         self.wifi_status_sprite = wifi_status_sprite
+        self.mqqt_connection_sprite = mqqt_connection_sprite
+
         self.client = MQTTClient(config)
 
         try:
@@ -117,18 +118,22 @@ class ErikaMqqt:
     async def wifi_han(self, state):
         print('Wifi is ', 'up' if state else 'down')
         if state == True:
-            self.wifi_status_sprite.on()
+            self.wifi_status_sprite.on(3)
+            self.mqqt_connection_sprite.show_frame(1)
         else:
             self.wifi_status_sprite.off()
+            self.mqqt_connection_sprite.off()
         status_led(status=state)
         await asyncio.sleep_ms(30)
 
     # If you connect with clean_session True, must re-subscribe (MQTT spec 3.1.2.4)
     async def conn_han(self, client):
+        self.mqqt_connection_sprite.off()
         print("Subscribing to Channels: {}, {}".format(
             self.channel_print, self.channel_print_all))
         await client.subscribe(topic=self.channel_print, qos=0)
         await client.subscribe(topic=self.channel_print_all, qos=0)
+        self.mqqt_connection_sprite.on(on_frame=2)
 
         for plugin in self.plugins:
             if plugin.active:

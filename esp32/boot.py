@@ -10,14 +10,15 @@ print(time.ticks_ms())
 print(time.ticks_ms())
 
 # Loading Screen
-timer = machine.Timer(0)
+progress_timer = machine.Timer(0)
 interruptCounter = 0
+
 def draw_loading_progress(timer):
     global interruptCounter
     global display_obj
-    display_obj.show_progress(progress=interruptCounter, max=10, y_from=110, bar_height=10)
+    display_obj.show_progress(progress=interruptCounter, max=7, y_from=110, bar_height=10)
     interruptCounter = interruptCounter+1
-    if interruptCounter >= 10:
-        timer.deinit()
+    # if interruptCounter >= 11:
+    #     timer.deinit()
 
-timer.init(period=1000, mode=machine.Timer.PERIODIC, callback=draw_loading_progress)
+progress_timer.init(period=1000, mode=machine.Timer.PERIODIC, callback=draw_loading_progress)

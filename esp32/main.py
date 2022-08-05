@@ -14,6 +14,9 @@ screen = Screen(board_type=board_config.screen_display_type, display=display_obj
 # sp_w = screen.play_sprite(x=10)
 from utils.sprite_utils import Sprite
 wifi_status_sprite = Sprite(name="wlan_sprites", display=screen.display)
+wifi_status_sprite.off()
+mqqt_status_sprite = Sprite(name="cloud_sprites", display=screen.display, x=195, y=13, frames=3)
+
 
 deb.start("imports")
 from mqtt_connection import ErikaMqqt
@@ -33,13 +36,14 @@ deb.done()
 #         ip = do_connect(user_config.wlan_ssid, user_config.wlan_password)
 #         screen.network(ip)
 #         await asyncio.sleep(max-1)
-       
+
+progress_timer.deinit() # is auto_loded from boot.py  
 async def start_all(erika:Erika, mqqt:ErikaMqqt):
     # Schedule three calls *concurrently*:
     await asyncio.gather(
        erika.receiver(),
        erika.printer(erika.queue_print),
-       erika_mqqt.start_mqqt_connection(wifi_status_sprite=wifi_status_sprite),
+       erika_mqqt.start_mqqt_connection(wifi_status_sprite, mqqt_status_sprite),
        #wlan_strength(user_config)    
        #sp_c,
        # sp_w)#, sp_c)
