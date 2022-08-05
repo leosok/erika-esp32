@@ -17,7 +17,7 @@ def draw_loading_progress(timer):
     global display_obj
     display_obj.show_progress(progress=interruptCounter, max=10, y_from=110, bar_height=10)
     interruptCounter = interruptCounter+1
-    if interruptCounter >= 11:
+    if interruptCounter >= 10:
         timer.deinit()
 
 timer.init(period=1000, mode=machine.Timer.PERIODIC, callback=draw_loading_progress)

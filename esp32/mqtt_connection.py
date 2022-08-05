@@ -15,6 +15,7 @@ import ubinascii
 import machine
 import gc
 import json
+from utils.sprite_utils import Sprite
 
 
 class ErikaMqqt:
@@ -29,6 +30,7 @@ class ErikaMqqt:
         self.mqqt_id = b'{}_{}'.format(mqqt_id, self.uuid)
         self.erika_id = self.uuid
         self.client = None
+        self.wifi_status_sprite = None
         self.plugins = []
 
         self.channel_status = self._get_channel_name(
@@ -42,7 +44,7 @@ class ErikaMqqt:
     def _get_channel_name(self, channel_name: str):
         return b'erika/{channel_name}/{erika_id}'.format(erika_id=self.uuid, channel_name=channel_name)
 
-    async def start_mqqt_connection(self):
+    async def start_mqqt_connection(self, wifi_status_sprite:Sprite=None):
         # moved here, so erika is not started by itself.
         print("Starting MQQT Connection")
 
@@ -66,6 +68,7 @@ class ErikaMqqt:
         config['client_id'] = self.mqqt_id
         config['ssl'] = True
 
+        self.wifi_status_sprite = wifi_status_sprite
         self.client = MQTTClient(config)
 
         try:
@@ -113,6 +116,10 @@ class ErikaMqqt:
 
     async def wifi_han(self, state):
         print('Wifi is ', 'up' if state else 'down')
+        if state == True:
+            self.wifi_status_sprite.on()
+        else:
+            self.wifi_status_sprite.off()
         status_led(status=state)
         await asyncio.sleep_ms(30)
 

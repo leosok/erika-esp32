@@ -8,9 +8,12 @@ screen = Screen(board_type=board_config.screen_display_type, display=display_obj
 # screen.show_image("mqqt4",200,10)
 # screen.show_image("mqqt5",200,50)
 # screen.show_image("mqqt3",200,80)
-sp_c = screen.play_sprite(name="cloud_sprites2", width_height=40, frames=2, play_reverse=True, pause_sec=0.7)
-sp_w = screen.play_sprite(x=150)
 
+#sp_c = screen.play_sprite(x=200, y=15, name="cloud_sprites", width_height=30, frames=2, play_reverse=True, pause_sec=0.5)
+# sp_w = screen.play_sprite(x=150) # 150 is the nice spot
+# sp_w = screen.play_sprite(x=10)
+from utils.sprite_utils import Sprite
+wifi_status_sprite = Sprite(name="wlan_sprites", display=screen.display)
 
 deb.start("imports")
 from mqtt_connection import ErikaMqqt
@@ -24,21 +27,23 @@ from plugins import register_plugins
 from utils.network_utils import do_connect, scan_wlan
 deb.done()
 
-async def wlan_strength(user_config:UserConfig, max=5):
-    while True:
-        await asyncio.sleep(3)
-        ip = do_connect(user_config.wlan_ssid, user_config.wlan_password)
-        screen.network(ip)
-        await asyncio.sleep(max-1)
+# async def wlan_strength(user_config:UserConfig, max=5):
+#     while True:
+#         await asyncio.sleep(3)
+#         ip = do_connect(user_config.wlan_ssid, user_config.wlan_password)
+#         screen.network(ip)
+#         await asyncio.sleep(max-1)
        
 async def start_all(erika:Erika, mqqt:ErikaMqqt):
     # Schedule three calls *concurrently*:
     await asyncio.gather(
        erika.receiver(),
        erika.printer(erika.queue_print),
-       erika_mqqt.start_mqqt_connection(),
+       erika_mqqt.start_mqqt_connection(wifi_status_sprite=wifi_status_sprite),
        #wlan_strength(user_config)    
-       sp_w)#, sp_c)
+       #sp_c,
+       # sp_w)#, sp_c)
+    )
 
 async def start_config(erika:Erika):
     # Schedule three calls *concurrently*:
