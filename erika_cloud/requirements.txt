@@ -3,3 +3,4 @@ peewee
 paho-mqtt
 python-dateutil
 python-dotenv
+tweepy

@@ -1,8 +1,8 @@
 import json
 import logging
-import os
 import os.path as op
 from email.utils import parseaddr
+from plugins.twitter_plugin import get_new_tweet
 from utils.bottle_utils import check_pass
 
 import peewee
@@ -20,6 +20,11 @@ logger = logging.getLogger('erika_bottle')
 logger.setLevel(logging.DEBUG)
 load_dotenv()
 APP_HOST = 'erika-cloud.de'
+
+
+initialize_models()
+db.close()
+application = default_app()
 
 
 @hook('before_request')
@@ -232,9 +237,22 @@ def typewriters_online():
     return dict(typewriters=typewriters)
 
 
-initialize_models()
-db.close()
-application = default_app()
+#####################################################
+##                  PLUGINS                        ##
+#####################################################
+@route('/plugins/twitter/<query>', method='GET')
+@route('/plugins/twitter/<query>/<after>', method='GET')
+def twitter_query(query, after=None):
+    """Returns tweets for a given query"""
+    from secrets import TWIITTER_BEARER_TOKEN
+    tweet = get_new_tweet(query, bearer_token=TWIITTER_BEARER_TOKEN, since_id=after)
+    logger.error(tweet)
+    if tweet:
+        logger.info(f"Found tweet for query {query}")
+        return dict(tweet.__dict__)
+    else:
+        return HTTPResponse(status=404, body=f"No Tweet for `{query}` after {after}")
+
 
 if __name__ == "__main__":
     run(host='0.0.0.0', port=8080, debug=True, reloader=True)
