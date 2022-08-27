@@ -3,6 +3,9 @@ from plugins.erika_plugin_base import ErikaBasePlugin
 import json
 
 class Telegraf(ErikaBasePlugin):
+
+    info = "Ein Telegraf, der an alle Erikas sendet, die gerade an sind. ON/OFF"
+
     def __init__(self, erika:Erika=None, erika_mqqt:ErikaMqqt=None): # type: ignore
         
         super().__init__(

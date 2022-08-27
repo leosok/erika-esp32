@@ -3,7 +3,7 @@ import sys;
 from json import JSONDecodeError
 
 sys.path.append("..")
-from secrets import MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD
+from secrets import MQQT_SERVER, MQQT_USERNAME, MQQT_PASSWORD, TWIITTER_BEARER_TOKEN
 import uuid
 import paho.mqtt.client as mqtt
 import json
@@ -91,6 +91,18 @@ class ErikaMqqt:
                     return send_email(data['from'], data['to'], subject, content)
             else:
                 Textdata.create(content=data['line'], hashid=data['hashid'], line_number=data['lnum'])
+
+        if msg_type == "twitter":
+            from utils.mail_utils import print_on_erika
+            from plugins.twitter_plugin import get_new_tweet
+            typewriter = Typewriter.get(Typewriter.uuid == typewriter_id)
+            if "cmd" in data:
+                if data["cmd"] == "get_tweets":
+                    tweet = get_new_tweet(bearer_token=TWIITTER_BEARER_TOKEN, query_str=data['query'], since_id=data['last_tweet_id'])
+                    if tweet:
+                        print_str = f"{tweet.text}\n"
+                        print_on_erika(typewriter=typewriter, text=print_str)                   
+                    
         return True
 
     def on_log(self, mqttc, obj, level, string):

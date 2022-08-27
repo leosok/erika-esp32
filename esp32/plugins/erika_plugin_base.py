@@ -8,7 +8,7 @@ class ErikaBasePlugin:
     A Base Plugin Class. Use as Baseclass for you Plugins to get basic functionality.
     """
 
-    info = "Ein Telegraf, der an alle Erikas sendet, die gerade an sind. ON/OFF"
+    info = "Please override this! ON/OFF"
 
     def __init__(self, erika: Erika = None, erika_mqqt: ErikaMqqt = None, topic=None, keylogging=False, active:bool=False):
         self._active = active
@@ -60,7 +60,7 @@ class ErikaBasePlugin:
         Will add the Plugin to the "docs" and to erika_mqqt.plugins
         Whenever a plugin is in the plugin folder, it will be mentioned in the docs
         """
-        self.erika.action_controller.docs.update({self.plugin_name: ErikaBasePlugin.info})
+        self.erika.action_controller.docs.update({self.plugin_name: self.info})
         setattr(self.erika.action_controller, self.plugin_name, self.activate)
        
     def on_message(self, topic: str, msg: str):
