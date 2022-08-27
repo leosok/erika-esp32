@@ -7,7 +7,7 @@ import uasyncio as asyncio
 class Twitter(ErikaBasePlugin):
     
     info = "Ein Plugin das Twitter Hashtags aboniert. ON/OFF"
-    wait_between_requests = 30 # seconds
+    wait_between_requests = 45 # seconds
 
     def __init__(self, erika:Erika=None, erika_mqqt:ErikaMqqt=None): # type: ignore
         self.last_tweet_id = None
@@ -41,15 +41,14 @@ class Twitter(ErikaBasePlugin):
         print(f"Twitter-Plugin received: {msg} on {topic}")
         if not "cmd" in msg:
             payload = json.loads(msg)
-            text = payload["text"]
+            text = payload["text"] + "\n --------- "
             id = payload["id"]
             self.last_tweet_id = id
+            asyncio.create_task(self.erika.print_text(
+                text, linefeed=True))
         else:
             print("Ignoring own cmd")
             
-        
-        asyncio.create_task(self.erika.print_text(
-                text, linefeed=True))
 
 
     async def request_tweet(self):
