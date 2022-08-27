@@ -100,8 +100,9 @@ class ErikaMqqt:
                 if data["cmd"] == "get_tweets":
                     tweet = get_new_tweet(bearer_token=TWIITTER_BEARER_TOKEN, query_str=data['query'], since_id=data['last_tweet_id'])
                     if tweet:
-                        print_str = f"{tweet.text}\n"
-                        print_on_erika(typewriter=typewriter, text=print_str)                   
+                        # print_str = f"{tweet.text}\n"
+                        self.mqttc.publish(f'{msg.topic}', json.dumps(tweet.__dict__))
+                                 
                     
         return True
 
