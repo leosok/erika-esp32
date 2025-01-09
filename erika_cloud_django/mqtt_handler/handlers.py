@@ -1,14 +1,19 @@
 import datetime
 import logging
 import json
+import os
 from dmqtt.signals import connect, topic
 from django.dispatch import receiver
 from django.conf import settings
 from django.core.mail import send_mail
 from typewriter.models import Textdata, Typewriter
+from .plugin_manager import PluginManager
 
 # Configure logger
 logger = logging.getLogger('mqtt_handler')
+
+# Initialize plugin manager
+plugin_manager = PluginManager(os.path.join(os.path.dirname(__file__), 'plugins'))
 
 @receiver(connect)
 def on_connect(sender, **kwargs):
@@ -60,35 +65,20 @@ def handle_upload(sender, topic, msg, **kwargs):
             return False
 
         if "cmd" in payload:
-            if payload["cmd"] == "email":
-                # Get all lines for this hashid
-                full_text = Textdata.as_fulltext(payload['hashid'])
-                subject = f'Erika Text {datetime.datetime.now().strftime("%d.%m.%Y")}'
-                
-                # Send email
-                send_mail(
-                    subject=subject,
-                    message=full_text,
-                    from_email=payload['from'],
-                    recipient_list=[payload['to']],
-                    fail_silently=False,
-                )
-                logger.info(f"Sent email from {payload['from']} to {payload['to']}")
-        else:
-            # Handle text line upload with correct field name 'content' instead of 'text'
-            Textdata.objects.create(
-                typewriter=typewriter,
-                hashid=payload['hashid'],
-                line_number=int(payload['lnum']),
-                content=payload['line']  # Changed from 'text' to 'content'
+            # Route to appropriate plugin
+            return plugin_manager.handle_message(
+                command=payload["cmd"],
+                typewriter_id=typewriter_id,
+                payload=payload
             )
-            logger.info(f"Saved line {payload['lnum']} for hashid {payload['hashid']} from typewriter {typewriter.erika_name}")
+        else:
+            # Default behavior for text storage
+            return plugin_manager.handle_message(
+                command="store",
+                typewriter_id=typewriter_id,
+                payload=payload
+            )
 
-        return True
-
-    except json.JSONDecodeError as e:
-        logger.error(f"Error decoding JSON payload: {e}")
-        return False
     except Exception as e:
         logger.error(f"Error processing upload message: {e}")
         return False

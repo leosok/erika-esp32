@@ -62,10 +62,10 @@ class Typewriter(models.Model):
 
 class Textdata(models.Model):
     typewriter = models.ForeignKey(
-        Typewriter, 
-        related_name='texts', 
+        Typewriter,
         on_delete=models.CASCADE,
-        default=Typewriter.objects.first().id
+        null=True,  # Allow null values
+        blank=True  # Allow blank in forms
     )
     content = models.TextField()
     timestamp = models.DateTimeField(default=timezone.now)
