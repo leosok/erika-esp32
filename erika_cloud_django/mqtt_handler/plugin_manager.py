@@ -19,10 +19,15 @@ class PluginManager:
                 module_name = filename[:-3]
                 try:
                     module = importlib.import_module(f".plugins.{module_name}", package="mqtt_handler")
-                    plugin_class = getattr(module, f"{module_name.title()}Plugin")
+
+                    # getting the first class that is a subclass of MQTTPlugin from this file
+                    plugin_class = next(
+                        cls for name, cls in module.__dict__.items()
+                        if isinstance(cls, type) and issubclass(cls, MQTTPlugin) and cls is not MQTTPlugin
+                    )
                     plugin = plugin_class()
                     self.plugins[plugin.command] = plugin
-                    logger.info(f"Loaded plugin: {plugin}")
+                    logger.info(f"Loaded plugin: {plugin} from {filename}")
                 except Exception as e:
                     logger.error(f"Failed to load plugin {module_name}: {e}")
 

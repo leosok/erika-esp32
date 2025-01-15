@@ -2,8 +2,10 @@
 name = "erika-cloud-django"
 version = "0.1.0"
 description = "Cloud Backend for Erika Typrwriters based on Django"
-authors = ["Your Name <you@example.com>"]
+authors = ["l.sokolov@gmx.de"]
 #readme = "README.md"
+package-mode = false
+
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -15,7 +17,7 @@ django-allauth = "^0.63.3"
 django-jazzmin = "^3.0.0"
 certifi = "^2024.7.4"
 python-dotenv = "^1.0.1"
-django-mqtt = {git = "https://github.com/drjgouveia/django-mqtt"}
+django-mqtt = {git = "https://github.com/leosok/django-mqtt/", rev = "72d5fed"}
 django = "^5.1.4"
 dj-database-url = "^2.3.0"
 
