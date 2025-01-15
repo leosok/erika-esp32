@@ -361,8 +361,8 @@ paho-mqtt = "*"
 [package.source]
 type = "git"
 url = "https://github.com/leosok/django-mqtt/"
-reference = "72d5fed"
-resolved_reference = "72d5fedd212b000f24596e562b5a9f6436ab447d"
+reference = "HEAD"
+resolved_reference = "3005c5d801f3c455595c0da5cd7bc5b38b23d9d7"
 
 [[package]]
 name = "django-ninja"
@@ -951,4 +951,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "619dff286a1c30ed91440a14b02d9945cd66750ab0bfd72cf7b6b85536937c25"
+content-hash = "f39ed4dd13d140e10700ce383a1a22db6d9b4d442e1c87165544ee85adb763b6"
