@@ -82,8 +82,34 @@ def handle_upload(sender, topic, msg, **kwargs):
             )
             logger.info(
                 f"Saved line {payload['lnum']} for hashid {payload['hashid']} from typewriter {typewriter.erika_name}")
+    except Exception as e:
+        logger.error(f"Error processing upload message: {e}")
+        return False
 
+
+@topic("erika/twitter/+", as_json=False)
+def handle_twitter(sender, topic, msg, **kwargs):
+    """Handle Twitter messages."""
+    try:
+        payload = json.loads(msg.payload)
+        logger.info(f"Twitter payload: {payload}")
+
+        typewriter_id = topic.split('/')[2]
+        try:
+            Typewriter.objects.get(uuid=typewriter_id)
+        except Typewriter.DoesNotExist:
+            logger.error(f"Typewriter not found: {typewriter_id}")
+            return False
+
+        if payload.get("cmd"):
+            # Route to appropriate plugin
+            return plugin_manager.handle_message(
+                command="twitter",
+                typewriter_id=typewriter_id,
+                payload=payload
+            )
 
     except Exception as e:
         logger.error(f"Error processing upload message: {e}")
         return False
+
