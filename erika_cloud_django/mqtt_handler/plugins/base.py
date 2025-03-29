@@ -7,6 +7,8 @@ class MQTTPlugin(ABC):
     def __init__(self):
         self.logger = logging.getLogger(f'mqtt_plugin.{self.__class__.__name__}')
         self.active = True
+        self.logger.setLevel(logging.INFO)  # Set the logger level
+
 
     @abstractmethod
     def handle_message(self, typewriter_id: str, payload: dict) -> bool:
