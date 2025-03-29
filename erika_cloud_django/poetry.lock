@@ -347,7 +347,7 @@ django = ">=4.2"
 
 [[package]]
 name = "django-mqtt"
-version = "0.4.0"
+version = "0.4.1"
 description = ""
 optional = false
 python-versions = ">=3.6"
@@ -362,7 +362,7 @@ paho-mqtt = "*"
 type = "git"
 url = "https://github.com/leosok/django-mqtt/"
 reference = "HEAD"
-resolved_reference = "3005c5d801f3c455595c0da5cd7bc5b38b23d9d7"
+resolved_reference = "c71d9735bf510b5fff5815c6a6cf17adaf8f2c07"
 
 [[package]]
 name = "django-ninja"

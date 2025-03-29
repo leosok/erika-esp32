@@ -4,7 +4,7 @@ from typewriter.models import Textdata
 from .base import MQTTPlugin
 
 class EmailPlugin(MQTTPlugin):
-    async def handle_message(self, typewriter_id: str, payload: dict) -> bool:
+    def handle_message(self, typewriter_id: str, payload: dict) -> bool:
         try:
             full_text = Textdata.as_fulltext(payload['hashid'])
             subject = f'Erika Text {datetime.datetime.now().strftime("%d.%m.%Y")}'

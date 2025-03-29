@@ -7,13 +7,13 @@ from django.dispatch import receiver
 from django.conf import settings
 from django.core.mail import send_mail
 from typewriter.models import Textdata, Typewriter
-#from .plugin_manager import PluginManager
+from .plugin_manager import PluginManager
 
 # Configure logger
 logger = logging.getLogger('mqtt_handler')
 
 # Initialize plugin manager
-# plugin_manager = PluginManager(os.path.join(os.path.dirname(__file__), 'plugins'))
+plugin_manager = PluginManager(os.path.join(os.path.dirname(__file__), 'plugins'))
 
 @receiver(connect)
 def on_connect(sender, **kwargs):
@@ -24,11 +24,6 @@ def on_connect(sender, **kwargs):
     sender.subscribe("#")
 
 
-    # topics_to_subscribe = ["#"]
-    # for sub_topic in topics_to_subscribe:
-    #     sender.subscribe(sub_topic)
-    #     logger.info(f"MQTT Connected and subscribed to topic: {sub_topic}")
-
 @topic("erika/print/all", as_json=False)
 def simple_topic(sender, topic, msg, **kwargs):
     try:
@@ -36,8 +31,9 @@ def simple_topic(sender, topic, msg, **kwargs):
         logger.info(f"MQTT message received on topic: {topic} with payload: {payload}")
     except Exception as e:
         logger.error(f"Error processing MQTT message on topic: {topic} - Error: {str(e)}")
-        
-@topic("erika/status/#", as_json=False)
+
+
+@topic("erika/status/+", as_json=False)
 def handle_status(sender, topic, msg, **kwargs):
     try:
         typewriter_id = topic.split('/')[2]
@@ -54,6 +50,7 @@ def handle_status(sender, topic, msg, **kwargs):
     except Exception as e:
         logger.error(f"Error processing status message: {str(e)}")
 
+
 @topic("erika/upload/#", as_json=False)
 def handle_upload(sender, topic, msg, **kwargs):
     """Handle uploaded text from typewriter."""
@@ -68,20 +65,24 @@ def handle_upload(sender, topic, msg, **kwargs):
             logger.error(f"Typewriter not found: {typewriter_id}")
         #     return False
 
-        # if "cmd" in payload:
-        #     # Route to appropriate plugin
-        #     return plugin_manager.handle_message(
-        #         command=payload["cmd"],
-        #         typewriter_id=typewriter_id,
-        #         payload=payload
-        #     )
-        # else:
-        #     # Default behavior for text storage
-        #     return plugin_manager.handle_message(
-        #         command="store",
-        #         typewriter_id=typewriter_id,
-        #         payload=payload
-        #     )
+        if "cmd" in payload:
+            # Route to appropriate plugin
+            return plugin_manager.handle_message(
+                command=payload["cmd"],
+                typewriter_id=typewriter_id,
+                payload=payload
+            )
+        else:
+            # Storing the lines sent from mqtt
+            Textdata.objects.create(
+                typewriter=typewriter,
+                hashid=payload['hashid'],
+                line_number=int(payload['lnum']),
+                content=payload['line']  # Changed from 'text' to 'content'
+            )
+            logger.info(
+                f"Saved line {payload['lnum']} for hashid {payload['hashid']} from typewriter {typewriter.erika_name}")
+
 
     except Exception as e:
         logger.error(f"Error processing upload message: {e}")
