@@ -21,6 +21,7 @@ django-mqtt = {git = "https://github.com/leosok/django-mqtt/"}
 django = "^5.1.4"
 dj-database-url = "^2.3.0"
 twikit = "^2.3.3"
+pendulum = "^3.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"

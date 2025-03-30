@@ -3,14 +3,36 @@ import datetime
 import json
 import logging
 import os
+import re
 import threading
+from dataclasses import dataclass
+from typing import Optional, Union
 
+import pendulum
+from django.conf.global_settings import TIME_ZONE
 from twikit.client.client import Client
 
 from typewriter.utils.mqtt_utils import send_print_message, send_mqtt_message
 from .base import MQTTPlugin
 
 #logger = logging.getLogger('twitter_plugin')
+
+@dataclass
+class TwitterResponse:
+    text:str = None
+    user_name:str = None
+    id:str = None
+    created_at: Optional[datetime] = None
+
+
+    def to_json(self) -> str:
+        json.dumps(self.__dict__)
+
+    def as_json_payload(self) -> str:
+        return json.dumps({
+            "text": self.text,
+            "id": self.id
+        })
 
 
 class TwitterPlugin(MQTTPlugin):
@@ -61,7 +83,7 @@ class TwitterPlugin(MQTTPlugin):
         except Exception as e:
             self.logger.error(f"Failed to login to Twitter: {e}")
 
-    async def fetch_tweets(self, hashtag: str, last_tweet_id: str = "42"):
+    async def fetch_tweets(self, hashtag: str, last_tweet_id: str = "42") -> TwitterResponse:
         """
         Fetch tweets with a given hashtag.
         :return: Tuple of (tweet_text, new_tweet_id) or None if no new tweets
@@ -73,12 +95,39 @@ class TwitterPlugin(MQTTPlugin):
             return None
 
         latest_tweet = tweets[0]
-        self.logger.info(f"Latest tweet for {hashtag}: {latest_tweet}")
-        if latest_tweet.id != last_tweet_id:
-            return f"@{latest_tweet.user.name}: {latest_tweet.full_text}", latest_tweet.id
+        ignore_tweet = False
+
+        self.logger.info(f"Latest tweet for {hashtag}: {latest_tweet} {latest_tweet.text}")
+        # remove all urls from tweet starting with " https://t.co". there might be multiple urls in a tweet
+        tweet_text = re.sub(r' https://t.co\S+', '', latest_tweet.text)
+
+        if all(word.startswith('#') for word in tweet_text.split()):
+            # ignore if the tweet is only composed from hashtags as text like
+            # '#poetry #literature #reading #queer #lesung #berlin #berlinliterature #berlinstories #berlinevents #berlinwriters #berlinreading'
+            ignore_tweet = True
+            self.logger.info(f"Ignoring tweet with only hashtags: {tweet_text}")
+
+        if latest_tweet.id != last_tweet_id and not ignore_tweet:
+            return TwitterResponse(
+                text=tweet_text,
+                user_name=latest_tweet.user.screen_name,
+                id=latest_tweet.id,
+                created_at=latest_tweet.created_at_datetime
+            )
         else:
             self.logger.info(f"No new tweets for {hashtag}. Last tweet from: {latest_tweet.created_at}")
             return None
+
+    def _format_tweet(self, tweet: TwitterResponse) -> TwitterResponse:
+        """
+        format tweet for printing.
+        """
+        nice_time = pendulum.instance(tweet.created_at).in_timezone(TIME_ZONE).format("D.M.Y HH:MM")
+        template = f"""{nice_time} @{tweet.user_name}
+        {tweet.text} 
+        """
+        tweet.text = template
+        return tweet
 
     def handle_message(self, typewriter_id: str, payload: dict) -> bool:
         try:
@@ -89,11 +138,8 @@ class TwitterPlugin(MQTTPlugin):
             result = self._run_async_in_loop(self.fetch_tweets(hashtag, last_tweet_id))
             logging.info(f"New tweet from {hashtag}: {result}")
             if result:
-                tweet_text, new_tweet_id = result
-                payload = json.dumps({
-                    "text": tweet_text,
-                    "id": new_tweet_id
-                })
+                # create a nice text to print
+                payload = self._format_tweet(result).as_json_payload()
 
                 # Uncomment to send MQTT message
                 send_mqtt_message(
