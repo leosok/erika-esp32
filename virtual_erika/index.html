@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Erika</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js"></script>
+    <script>
+        // Fallback check for Paho library
+        if (typeof Paho === 'undefined') {
+            console.error('Paho MQTT library failed to load from CDN');
+        } else {
+            console.log('Paho MQTT library loaded successfully');
+        }
+    </script>
+</head>
+<body>
+    <div class="terminal">
+        <div class="terminal-header">
+            <span class="title">Virtual Erika</span>
+            <span id="status" class="status">Disconnected</span>
+            <div class="header-buttons">
+                <button id="connectBtn" class="header-btn">Connect</button>
+                <button id="disconnectBtn" class="header-btn" disabled>Disconnect</button>
+            </div>
+        </div>
+        <div class="terminal-body">
+            <div class="panes-container">
+                <div class="info-pane">
+                    <div class="pane-header">System Info</div>
+                    <div id="output" class="output"></div>
+                </div>
+                <div class="io-pane">
+                    <div class="pane-header">Input/Output</div>
+                    <div id="io-output" class="io-output"></div>
+                    <div class="input-line">
+                        <span class="prompt">></span>
+                        <input type="text" id="input" class="input" placeholder="Type here..." autocomplete="off">
+                        <span class="cursor">|</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="config.local.js"></script>
+    <script src="config.js"></script>
+    <script src="plugins/plugin-base.js"></script>
+    <script src="plugins/plugin-manager.js"></script>
+    <script src="plugins/telegraf.js"></script>
+    <script src="main.js"></script>
+</body>
+</html> 
