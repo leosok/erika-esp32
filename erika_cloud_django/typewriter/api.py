@@ -11,13 +11,13 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from ninja import NinjaAPI,  Router
+from ninja import NinjaAPI, Router, Body
 from django.shortcuts import get_object_or_404
 
 # from utils.mail_utils import print_on_erika
 from .models import Textdata, Typewriter, Message
-from .schemas import TextdataSchema, TypewriterSchema, MessageSchema, TypewriterCreateSchema
-from typing import List
+from .schemas import TextdataSchema, TypewriterSchema, MessageSchema, TypewriterCreateSchema, EmailWebhookSchema, WebhookResponseSchema
+from typing import List, Dict, Any
 
 from erika_cloud.utils.dj_mail_utils import send_password_reset
 
@@ -76,24 +76,32 @@ def erika_sender(request, erika_name: str):
     except Typewriter.DoesNotExist:
         return {"detail": f"No typewriter found with name `{erika_name.capitalize()}`"}, 404
 
-@typewriter_router.post("/incoming", response=dict)
-@typewriter_router.post("/incoming_email", response=dict)
-def incoming_webhook(request, data: dict):
-    receiver_name, receiver_email = parseaddr(data['headers']['to'])
-    sender_name, sender_email = parseaddr(data['headers']['from'])
+@typewriter_router.post("/incoming", response={200: WebhookResponseSchema, 404: WebhookResponseSchema})
+@typewriter_router.post("/incoming_email", response={200: WebhookResponseSchema, 404: WebhookResponseSchema})
+def incoming_webhook(request, data: EmailWebhookSchema):
     try:
+        _, receiver_email = parseaddr(data.headers.get('to', ''))
+        _, sender_email = parseaddr(data.headers.get('from', ''))
+        subject = data.headers.get('subject', '(No Subject)')
+        
+        if not receiver_email:
+            return 404, {"detail": "Missing 'To' header in email webhook"}
+
         erika = Typewriter.objects.get(email=receiver_email.lower())
     except Typewriter.DoesNotExist:
-        return {"detail": f"No Typewriter found for address {receiver_email}"}, 404
+        return 404, {"detail": f"No Typewriter found for address {receiver_email}"}
+    except Exception as e:
+        logging.error(f"Error processing webhook: {e}")
+        return 404, {"detail": f"Error processing webhook: {str(e)}"}
 
-    msg = Message.objects.create(
+    Message.objects.create(
         typewriter=erika,
         sender=sender_email,
-        subject=data['headers']['subject'],
-        body=data['plain']
+        subject=subject,
+        body=data.plain
     )
 
-    return {"detail": "Message created"}
+    return 200, {"detail": "Message created"}
 
 @typewriter_router.post("/new")
 def register_typewriter(request, data: TypewriterCreateSchema) -> TypewriterSchema:
